@@ -15,7 +15,7 @@ postsRouter.get("/", (req: Request, res: Response) => {
         .status(HttpStatusCode.OK_200)
 })
 
-postsRouter.post('/', postInputValidation(),  async (req: RequestBody<PostInputModel>, res: Response) => {
+postsRouter.post('/', authMiddleware, postInputValidation(),  async (req: RequestBody<PostInputModel>, res: Response) => {
     const payload: PostInputModel = {
         title: req.body.title,
         shortDescription: req.body.shortDescription,
