@@ -2,9 +2,9 @@ import {Router, Response, Request} from "express";
 import {blogRepository} from "../repository/blogRepository";
 import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
 import {authMiddleware} from "../../../app/config/middleware/authMiddleware";
-import {blogInputValidation} from "../validations/blogValidations";
-import {BlogInputModel} from "../models/BlogInputModel";
 import {RequestBody, RequestParamsBody} from "../../common/types";
+import {BlogInputModel} from "../models/BlogInputModel";
+import {blogInputValidation} from "../validations/blogValidations";
 
 export const blogsRouter = Router()
 
