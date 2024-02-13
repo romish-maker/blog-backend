@@ -3,6 +3,7 @@ import {app} from "../../../app/appSettings";
 import {describe} from "node:test";
 import {RoutesList} from "../../../app/enums";
 import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
+import {blogTestManager} from "../utils/testing/blogTestManager";
 
 const request = supertest(app)
 
@@ -12,25 +13,7 @@ describe('blogs GET route tests', () => {
     })
 
     it('should return blogs', async () => {
-        const payload = {
-            name: "romish blog",
-            description: "description for romish blog",
-            websiteUrl: "https://google.com"
-        }
-
-        const createdResponse = await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(payload)
-            .expect(HttpStatusCode.CREATED_201)
-
-        const createdBody = createdResponse.body
-
-        expect(createdBody).toEqual({
-            id: expect.any(String),
-            name: payload.name,
-            description: payload.description,
-            websiteUrl: payload.websiteUrl,
-        })
+        const createdBody = await blogTestManager.createBlog()
 
         const responseResult = await request.get(RoutesList.BLOGS)
             .expect(HttpStatusCode.OK_200)
@@ -39,25 +22,7 @@ describe('blogs GET route tests', () => {
         expect(responseResult.body).toEqual([createdBody])
     })
     it('should return blog by id', async () => {
-        const payload = {
-            name: "romish blog",
-            description: "description for romish blog",
-            websiteUrl: "https://google.com"
-        }
-
-        const createdResponse = await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(payload)
-            .expect(HttpStatusCode.CREATED_201)
-
-        const createdBody = createdResponse.body
-
-        expect(createdBody).toEqual({
-            id: expect.any(String),
-            name: payload.name,
-            description: payload.description,
-            websiteUrl: payload.websiteUrl,
-        })
+        const createdBody = await blogTestManager.createBlog()
 
         const responseResult = await request.get(`${RoutesList.BLOGS}/${createdBody.id}`)
             .expect(HttpStatusCode.OK_200)
@@ -65,26 +30,6 @@ describe('blogs GET route tests', () => {
         expect(responseResult.body).toEqual(createdBody)
     })
     it("should return 404 for non existing blog", async () => {
-        const payload = {
-            name: "romish blog",
-            description: "description for romish blog",
-            websiteUrl: "https://google.com"
-        }
-
-        const createdResponse = await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(payload)
-            .expect(HttpStatusCode.CREATED_201)
-
-        const createdBody = createdResponse.body
-
-        expect(createdBody).toEqual({
-            id: expect.any(String),
-            name: payload.name,
-            description: payload.description,
-            websiteUrl: payload.websiteUrl,
-        })
-
         await request.get(`${RoutesList.BLOGS}/notExistingBlog`)
             .expect(HttpStatusCode.NOT_FOUND_404)
     })
@@ -95,25 +40,7 @@ describe("blogs routes POST tests", () => {
         await request.delete('/testing/all-data')
     })
     it("should create new blog", async () => {
-        const payload = {
-            name: "romish blog",
-            description: "description for romish blog",
-            websiteUrl: "https://google.com"
-        }
-
-        const createdResponse = await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(payload)
-            .expect(HttpStatusCode.CREATED_201)
-
-        const createdBody = createdResponse.body
-
-        expect(createdBody).toEqual({
-            id: expect.any(String),
-            name: payload.name,
-            description: payload.description,
-            websiteUrl: payload.websiteUrl,
-        })
+        await blogTestManager.createBlog()
     })
     it("should'nt create blog", async () => {
         const wrongPayload = {
@@ -139,25 +66,7 @@ describe("blogs routes UPDATE tests", () => {
         await request.delete('/testing/all-data')
     })
     it('should update blog by id', async () => {
-        const payload = {
-            name: "romish blog",
-            description: "description for romish blog",
-            websiteUrl: "https://google.com"
-        }
-
-        const createdResponse = await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(payload)
-            .expect(HttpStatusCode.CREATED_201)
-
-        const createdBody = createdResponse.body
-
-        expect(createdBody).toEqual({
-            id: expect.any(String),
-            name: payload.name,
-            description: payload.description,
-            websiteUrl: payload.websiteUrl,
-        })
+        const createdBody = await blogTestManager.createBlog()
 
         const responseResult = await request.get(`${RoutesList.BLOGS}/${createdBody.id}`)
             .expect(HttpStatusCode.OK_200)
@@ -184,25 +93,7 @@ describe("blogs routes UPDATE tests", () => {
         })
     })
     it("should'nt update blog without auth", async () => {
-        const payload = {
-            name: "romish blog",
-            description: "description for romish blog",
-            websiteUrl: "https://google.com"
-        }
-
-        const createdResponse = await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(payload)
-            .expect(HttpStatusCode.CREATED_201)
-
-        const createdBody = createdResponse.body
-
-        expect(createdBody).toEqual({
-            id: expect.any(String),
-            name: payload.name,
-            description: payload.description,
-            websiteUrl: payload.websiteUrl,
-        })
+        const createdBody = await blogTestManager.createBlog()
 
         const updatedPayload = {
             name: "romish put",
@@ -233,25 +124,7 @@ describe("blogs routes DELETE tests", () => {
         await request.delete('/testing/all-data')
     })
     it("should delete blog by id", async () => {
-        const payload = {
-            name: "romish blog",
-            description: "description for romish blog",
-            websiteUrl: "https://google.com"
-        }
-
-        const createdResponse = await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(payload)
-            .expect(HttpStatusCode.CREATED_201)
-
-        const createdBody = createdResponse.body
-
-        expect(createdBody).toEqual({
-            id: expect.any(String),
-            name: payload.name,
-            description: payload.description,
-            websiteUrl: payload.websiteUrl,
-        })
+        const createdBody = await blogTestManager.createBlog()
 
         const responseResult = await request.get(`${RoutesList.BLOGS}/${createdBody.id}`)
             .expect(HttpStatusCode.OK_200)
@@ -287,25 +160,8 @@ describe("blogs routes DELETE tests", () => {
             .expect(HttpStatusCode.NOT_FOUND_404)
     })
     it("shouldn't delete blog without auth", async () => {
-        const payload = {
-            name: "romish blog",
-            description: "description for romish blog",
-            websiteUrl: "https://google.com"
-        }
+        const createdBody = await blogTestManager.createBlog()
 
-        const createdResponse = await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(payload)
-            .expect(HttpStatusCode.CREATED_201)
-
-        const createdBody = createdResponse.body
-
-        expect(createdBody).toEqual({
-            id: expect.any(String),
-            name: payload.name,
-            description: payload.description,
-            websiteUrl: payload.websiteUrl,
-        })
 
         await request.delete(`${RoutesList.BLOGS}/${createdBody.id}`)
             .auth('wrongUser', 'wrongPass')
