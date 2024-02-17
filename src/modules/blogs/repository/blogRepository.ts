@@ -7,13 +7,13 @@ export const blogRepository = {
         return blogsCollection.find({}).toArray()
     },
     async getBlogById(blogId: string) {
-        return blogsCollection.findOne({ id: blogId } )
+        return blogsCollection.findOne({ id: blogId })
     },
     async createNewBlog(payload: BlogInputModel): Promise<BlogViewModel> {
         const newBlog = {
             id: String(Date.now()),
             isMembership: false,
-            createdAt: String(Date.now()),
+            createdAt: new Date().toISOString(),
             ...payload,
         }
 
