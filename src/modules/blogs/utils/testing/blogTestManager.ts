@@ -7,7 +7,6 @@ import {testBlogInput} from "../../mocks";
 const supertest = require('supertest')
 
 const request = supertest(app)
-
 class BlogsTestManager {
     async createBlog(payload: {
         shouldExpect?: boolean
