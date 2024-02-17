@@ -1,170 +1,189 @@
-import supertest from 'supertest'
 import {app} from "../../../app/appSettings";
-import {describe} from "node:test";
+import {blogTestManager} from "../utils/testing/blogTestManager";
 import {RoutesList} from "../../../app/enums";
 import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
-import {blogTestManager} from "../utils/testing/blogTestManager";
+import {testBlog, testBlogInput, testUpdateBlogInput} from "../mocks";
+import {blogsCollection, client} from "../../../app/config/db";
+
+const supertest = require('supertest')
 
 const request = supertest(app)
 
-describe('blogs GET route tests', () => {
+describe('/blogs route GET tests: ', () => {
     beforeEach(async () => {
-        await request.delete('/testing/all-data')
+        await request.delete(`/testing/all-data`)
     })
 
-    it('should return blogs', async () => {
-        const createdBody = await blogTestManager.createBlog()
-
-        const responseResult = await request.get(RoutesList.BLOGS)
-            .expect(HttpStatusCode.OK_200)
-
-        expect(responseResult.body.length).toBe(1)
-        expect(responseResult.body).toEqual([createdBody])
+    afterEach(async () => {
+        await client.close()
     })
-    it('should return blog by id', async () => {
-        const createdBody = await blogTestManager.createBlog()
 
-        const responseResult = await request.get(`${RoutesList.BLOGS}/${createdBody.id}`)
-            .expect(HttpStatusCode.OK_200)
+    it('GET /blogs', async () => {
+        const createdBlog = await blogTestManager.createBlog()
 
-        expect(responseResult.body).toEqual(createdBody)
-    })
-    it("should return 404 for non existing blog", async () => {
-        await request.get(`${RoutesList.BLOGS}/notExistingBlog`)
-            .expect(HttpStatusCode.NOT_FOUND_404)
-    })
-})
+        const result = await request.get(RoutesList.BLOGS).expect(HttpStatusCode.OK_200)
 
-describe("blogs routes POST tests", () => {
-    beforeEach(async () => {
-        await request.delete('/testing/all-data')
+        expect(result.body.length).toBe(1)
+        expect(result.body[0].name).toBe(createdBlog.body.name)
     })
-    it("should create new blog", async () => {
+
+    it('GET /blogs/:id success', async () => {
+        const createdBlog = await blogTestManager.createBlog()
+
+        const result = await request.get(`${RoutesList.BLOGS}/${createdBlog.body.id}`).expect(HttpStatusCode.OK_200)
+
+        expect(result.body.websiteUrl).toBe(testBlogInput.websiteUrl)
+        expect(result.body.id).toStrictEqual(expect.any(String))
+        expect(result.body.id).toBe(createdBlog.body.id)
+    })
+
+    it('GET /blogs/:id 404 not found', async () => {
         await blogTestManager.createBlog()
-    })
-    it("should'nt create blog", async () => {
-        const wrongPayload = {
-            name: "",
-            description: "",
-            websiteUrl: ""
-        }
 
-        await request.post(RoutesList.BLOGS)
-            .auth('admin', 'qwerty')
-            .send(wrongPayload)
-            .expect(HttpStatusCode.BAD_REQUEST_400)
-    })
-    it("should not create without auth", async () => {
-        await request.post(RoutesList.BLOGS)
-            .auth('wrongUser', 'wrongPass')
-            .expect(HttpStatusCode.UNAUTHORIZED_401)
+        await request.get(`${RoutesList.BLOGS}/someId`).expect(HttpStatusCode.NOT_FOUND_404)
     })
 })
 
-describe("blogs routes UPDATE tests", () => {
+describe('/blogs route POST tests: ', () => {
     beforeEach(async () => {
-        await request.delete('/testing/all-data')
+        await request.delete(`/testing/all-data`)
     })
-    it('should update blog by id', async () => {
-        const createdBody = await blogTestManager.createBlog()
 
-        const responseResult = await request.get(`${RoutesList.BLOGS}/${createdBody.id}`)
-            .expect(HttpStatusCode.OK_200)
+    it('POST /blogs success', async () => {
+        await blogTestManager.createBlog({ shouldExpect: true })
+    })
 
-        expect(responseResult.body).toEqual(createdBody)
+    it('POST /blogs failed::unauthorized', async () => {
+        await blogTestManager.createBlog({ user: 'wrong', password: 'auth', expectedStatusCode: HttpStatusCode.UNAUTHORIZED_401 })
+        await blogTestManager.createBlog({ user: 'admin', password: 'wrongPass', expectedStatusCode: HttpStatusCode.UNAUTHORIZED_401 })
+        await blogTestManager.createBlog({ user: 'wrongUser', password: 'qwerty', expectedStatusCode: HttpStatusCode.UNAUTHORIZED_401 })
 
-        const updatedPayload = {
-            name: "romish put",
-            description: "description put",
-            websiteUrl: "https://google.com/put"
-        }
+        const blogs = await blogsCollection.find({}).toArray()
 
-        await request.put(`${RoutesList.BLOGS}/${createdBody.id}`)
-            .auth('admin', 'qwerty')
-            .send(updatedPayload)
-            .expect(HttpStatusCode.NO_CONTENT_204)
+        expect(blogs.length).toBe(0)
+    })
 
-        const responseResult2 = await request.get(`${RoutesList.BLOGS}/${createdBody.id}`)
-            .expect(HttpStatusCode.OK_200)
-
-        expect(responseResult2.body).toEqual({
-            id: expect.any(String),
-            ...updatedPayload
+    it('POST /blogs failed::name:notString', async () => {
+        await blogTestManager.createBlog({
+            shouldExpect: true,
+            checkedData: { field: 'name', value: null },
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
         })
     })
-    it("should'nt update blog without auth", async () => {
-        const createdBody = await blogTestManager.createBlog()
 
-        const updatedPayload = {
-            name: "romish put",
-            description: "description put",
-            websiteUrl: "https://google.com/put"
-        }
-
-        await request.put(`${RoutesList.BLOGS}/${createdBody.id}`)
-            .auth('wrongUser', 'wrongPass')
-            .send(updatedPayload)
-            .expect(HttpStatusCode.UNAUTHORIZED_401)
+    it('POST /blogs failed::name:tooLong', async () => {
+        await blogTestManager.createBlog({
+            shouldExpect: true,
+            checkedData: { field: 'name', value: '1234567890123456'},
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+        })
     })
-    it("should return 404 for non existing blog", async () => {
-        const updatedPayload = {
-            name: "romish put",
-            description: "description put",
-            websiteUrl: "https://google.com/put"
-        }
 
-        await request.put(`${RoutesList.BLOGS}/notExistingBlog`)
-            .auth('admin', 'qwerty')
-            .send(updatedPayload)
-            .expect(HttpStatusCode.NOT_FOUND_404)
+    it('POST /blogs failed::description:emptyString', async () => {
+        await blogTestManager.createBlog({
+            shouldExpect: true,
+            checkedData: { field: 'description', value: ''},
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+        })
+    })
+
+    it('POST /blogs failed::websiteUrl:incorrectUrl', async () => {
+        const res = await blogTestManager.createBlog({
+            shouldExpect: true,
+            checkedData: { field: 'websiteUrl', value: 'https//my-website.top'},
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+        })
+
+        expect(res.body.errorsMessages[0].message).toBe('Must be a valid URL')
     })
 })
-describe("blogs routes DELETE tests", () => {
+
+describe('/blogs route PUT tests: ', () => {
     beforeEach(async () => {
-        await request.delete('/testing/all-data')
+        await request.delete(`/testing/all-data`)
     })
-    it("should delete blog by id", async () => {
-        const createdBody = await blogTestManager.createBlog()
 
-        const responseResult = await request.get(`${RoutesList.BLOGS}/${createdBody.id}`)
-            .expect(HttpStatusCode.OK_200)
+    it('PUT /blogs success', async () => {
+        const createdBlog = await blogTestManager.createBlog()
 
-        expect(responseResult.body).toEqual(createdBody)
-
-        const updatedPayload = {
-            name: "romish put",
-            description: "description put",
-            websiteUrl: "https://google.com/put"
-        }
-
-        await request.put(`${RoutesList.BLOGS}/${createdBody.id}`)
+        await request.put(`${RoutesList.BLOGS}/${createdBlog.body.id}`)
             .auth('admin', 'qwerty')
-            .send(updatedPayload)
+            .send(testUpdateBlogInput)
             .expect(HttpStatusCode.NO_CONTENT_204)
 
-        const responseResult2 = await request.get(`${RoutesList.BLOGS}/${createdBody.id}`)
-            .expect(HttpStatusCode.OK_200)
+        const blog = await blogsCollection.findOne({ id: createdBlog.body.id })
 
-        expect(responseResult2.body).toEqual({
-            id: expect.any(String),
-            ...updatedPayload
-        })
+        expect(blog?.name).toBe(testUpdateBlogInput.name)
+        expect(blog?.id).toBe(createdBlog.body.id)
+        expect(blog?.websiteUrl).not.toBe(testBlog.websiteUrl)
+    })
 
-        await request.delete(`${RoutesList.BLOGS}/${createdBody.id}`)
+    it('PUT /blogs failed::unauthorized', async () => {
+        const createdBlog = await blogTestManager.createBlog()
+
+        await request.put(`${RoutesList.BLOGS}/${createdBlog.body.id}`)
+            .auth('failed', 'password')
+            .send(testUpdateBlogInput)
+            .expect(HttpStatusCode.UNAUTHORIZED_401)
+
+        const blog = await blogsCollection.findOne({ id: createdBlog.body.id })
+
+        expect(blog?.name).toBe(testBlogInput.name)
+    })
+
+    it('PUT /blogs failed::notFound', async () => {
+        const createdBlog = await blogTestManager.createBlog()
+
+        await request.put(`${RoutesList.BLOGS}/someId`)
+            .auth('admin', 'qwerty')
+            .send(testUpdateBlogInput)
+            .expect(HttpStatusCode.NOT_FOUND_404)
+
+        const blog = await blogsCollection.findOne({ id: createdBlog.body.id })
+
+        expect(blog?.name).toBe(createdBlog.body.name)
+        expect(blog?.websiteUrl).not.toBe(testUpdateBlogInput.websiteUrl)
+    })
+})
+
+describe('/blogs route DELETE tests: ', () => {
+    beforeEach(async () => {
+        await request.delete(`/testing/all-data`)
+    })
+
+    it('DELETE /blogs/:id success', async () => {
+        const createdBlog = await blogTestManager.createBlog()
+
+        await request.delete(`${RoutesList.BLOGS}/${createdBlog.body.id}`)
             .auth('admin', 'qwerty')
             .expect(HttpStatusCode.NO_CONTENT_204)
+
+        const blogs = await blogsCollection.find({}).toArray()
+
+        expect(blogs.length).toBe(0)
     })
-    it("shouldn't delete blog for non existing blog", async () => {
-        await request.delete(`${RoutesList.BLOGS}/nonExistingBody`)
+
+    it('DELETE /blogs/:id failed::notAuthorized', async () => {
+        const createdBlog = await blogTestManager.createBlog()
+
+        await request.delete(`${RoutesList.BLOGS}/${createdBlog.body.id}`)
+            .auth('failed', 'password')
+            .expect(HttpStatusCode.UNAUTHORIZED_401)
+
+        const blogs = await blogsCollection.find({}).toArray()
+
+        expect(blogs.length).toBe(1)
+    })
+
+    it('DELETE /blogs/:id failed::notFound', async () => {
+        await blogTestManager.createBlog()
+
+        await request.delete(`${RoutesList.BLOGS}/wrongId`)
             .auth('admin', 'qwerty')
             .expect(HttpStatusCode.NOT_FOUND_404)
-    })
-    it("shouldn't delete blog without auth", async () => {
-        const createdBody = await blogTestManager.createBlog()
 
+        const blogs = await blogsCollection.find({}).toArray()
 
-        await request.delete(`${RoutesList.BLOGS}/${createdBody.id}`)
-            .auth('wrongUser', 'wrongPass')
-            .expect(HttpStatusCode.UNAUTHORIZED_401)
+        expect(blogs.length).toBe(1)
     })
 })

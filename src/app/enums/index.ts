@@ -1,5 +1,5 @@
 export enum RoutesList {
     BASE = "/",
-    BLOGS = "/BLOGS",
-    POSTS = "/POSTS",
+    BLOGS = "/blogs",
+    POSTS = "/posts",
 }
