@@ -8,8 +8,8 @@ import {PostInputModel} from "../models/PostInputModel";
 
 export const postsRouter = Router()
 
-postsRouter.get("/", (req: Request, res: Response) => {
-    const posts = postsRepository.getAllPosts();
+postsRouter.get("/", async (req: Request, res: Response) => {
+    const posts = await postsRepository.getAllPosts();
 
     res.send(posts)
         .status(HttpStatusCode.OK_200)
@@ -23,7 +23,7 @@ postsRouter.post('/', authMiddleware, postInputValidation(),  async (req: Reques
         blogId: req.body.blogId,
     }
 
-    const createdPost = postsRepository.createNewPost(payload)
+    const createdPost = await postsRepository.createNewPost(payload)
 
     if (!createdPost) {
         res.sendStatus(HttpStatusCode.BAD_REQUEST_400)
@@ -34,8 +34,8 @@ postsRouter.post('/', authMiddleware, postInputValidation(),  async (req: Reques
     res.status(HttpStatusCode.CREATED_201).send(createdPost)
 })
 
-postsRouter.get('/:postId',  (req, res) => {
-    const foundPostById = postsRepository.getPostById(req.params.postId)
+postsRouter.get('/:postId',  async (req, res) => {
+    const foundPostById = await postsRepository.getPostById(req.params.postId)
 
     if (!foundPostById) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
@@ -45,14 +45,14 @@ postsRouter.get('/:postId',  (req, res) => {
     res.status(HttpStatusCode.OK_200).send(foundPostById)
 })
 
-postsRouter.put('/:postId', authMiddleware, postInputValidation(), (req: RequestParamsBody<{postId: string}, PostInputModel>, res: Response) => {
+postsRouter.put('/:postId', authMiddleware, postInputValidation(), async (req: RequestParamsBody<{postId: string}, PostInputModel>, res: Response) => {
     const payload = {
         title: req.body.title,
         shortDescription: req.body.shortDescription,
         content: req.body.content,
         blogId: req.body.blogId
     }
-    const isPostUpdated = postsRepository.updatePostById(payload, req.params.postId)
+    const isPostUpdated = await postsRepository.updatePostById(payload, req.params.postId)
 
     if (!isPostUpdated) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
@@ -62,8 +62,8 @@ postsRouter.put('/:postId', authMiddleware, postInputValidation(), (req: Request
     res.sendStatus(HttpStatusCode.NO_CONTENT_204)
 })
 
-postsRouter.delete('/:postId',  authMiddleware, (req, res) => {
-    const foundPostById = postsRepository.deletePostById(req.params.postId)
+postsRouter.delete('/:postId',  authMiddleware, async (req, res) => {
+    const foundPostById = await postsRepository.deletePostById(req.params.postId)
 
     if (!foundPostById) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)

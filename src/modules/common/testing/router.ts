@@ -1,13 +1,12 @@
 import { Router } from 'express'
 import {HttpStatusCode} from "../enums/HttpsStatusCodes";
-import {db as blogsDb} from "../../blogs/repository/blogRepository";
-import {db as postsDb} from "../../posts/repository/postsRepository";
+import {blogsCollection, postsCollection} from "../../../app/config/db";
 
 export const testingRouter = Router()
 
-testingRouter.delete('/all-data', (req, res) => {
-    blogsDb.blogs = []
-    postsDb.posts = []
+testingRouter.delete('/all-data', async (req, res) => {
+    await blogsCollection.deleteMany({})
+    await postsCollection.deleteMany({})
 
     res.sendStatus(HttpStatusCode.NO_CONTENT_204)
 })

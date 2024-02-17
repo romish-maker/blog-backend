@@ -1,25 +1,13 @@
-import {PostViewModel} from "../models/PostViewModel";
 import {PostInputModel} from "../models/PostInputModel";
 import {blogRepository} from "../../blogs/repository/blogRepository";
+import {postsCollection} from "../../../app/config/db";
 
-export const db: { posts: PostViewModel[] } = {
-    posts: [
-        {
-            id: '2002',
-            title: 'Express',
-            shortDescription: 'Why is so hard to find a job in 2024',
-            content: 'VERY VERY LONG CONTENT HERE',
-            blogId: '2002',
-            blogName: 'romish-kuvatov',
-        }
-    ]
-}
 export const postsRepository = {
-    getAllPosts() {
-        return db.posts
+    async getAllPosts() {
+        return postsCollection.find({}).toArray()
     },
-    createNewPost(payload: PostInputModel) {
-        const blogData = blogRepository.getBlogById(payload.blogId)
+    async createNewPost(payload: PostInputModel) {
+        const blogData = await blogRepository.getBlogById(payload.blogId)
 
         if (!blogData) {
             return false
@@ -32,39 +20,34 @@ export const postsRepository = {
             content: payload.content,
             blogId: payload.blogId,
             blogName: blogData?.name,
+            createdAt: new Date().toISOString()
         }
 
-        db.posts.push(newPost)
+        await postsCollection.insertOne({...newPost})
         return newPost
     },
-    getPostById(postId: string) {
-        return db.posts.find(blog => blog.id === postId)
+    async getPostById(postId: string) {
+        return await postsCollection.findOne({ id: postId })
     },
-    updatePostById(payload: PostInputModel, postId: string) {
-        const blogData = blogRepository.getBlogById(payload.blogId)
-        const updatingPost = this.getPostById(postId)
+    async updatePostById(payload: PostInputModel, postId: string) {
+        const foundBlog = await blogRepository.getBlogById(payload.blogId)
 
-        if (!updatingPost || !blogData) {
+        if (!foundBlog) {
             return false
         }
 
-        updatingPost.blogId = payload.blogId
-        updatingPost.title = payload.title
-        updatingPost.shortDescription = payload.shortDescription
-        updatingPost.content = payload.content
-        updatingPost.blogName = blogData.name
+        const updatedResult = await postsCollection.updateOne({ id: postId }, { $set: {
+                title: payload.title,
+                shortDescription: payload.shortDescription,
+                content: payload.content,
+                blogId: payload.blogId,
+            }})
 
-        return true
+        return Boolean(updatedResult.matchedCount)
     },
-    deletePostById(postId: string) {
-        const deletingPost = this.getPostById(postId)
+    async deletePostById(postId: string) {
+        const deletedResult = await postsCollection.deleteOne({ id: postId })
 
-        if (!deletingPost) {
-            return false
-        }
-
-        db.posts = db.posts.filter((post) => post.id !== postId)
-
-        return true
+        return Boolean(deletedResult.deletedCount)
     }
 }

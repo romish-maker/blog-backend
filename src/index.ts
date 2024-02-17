@@ -1,6 +1,7 @@
 import {app, AppSettings} from "./app/appSettings";
+import {runDatabase} from "./app/config/db";
 
 
-app.listen(AppSettings.PORT, () => {
-    console.log(`Example app listening on port ${AppSettings.PORT}`)
+app.listen(AppSettings.PORT, async () => {
+    await runDatabase()
 })

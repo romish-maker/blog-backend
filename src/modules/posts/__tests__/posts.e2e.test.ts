@@ -1,167 +1,214 @@
-import supertest from 'supertest'
+import { postsCollection } from '../../../app/config/db'
 import {app} from "../../../app/appSettings";
-import {describe} from "node:test";
 import {RoutesList} from "../../../app/enums";
-import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
-import {blogTestManager} from "../../blogs/utils/testing/blogTestManager";
-import {blogPayload} from "../../blogs/mocks";
 import {postTestManager} from "../utils/testing/postTestManager";
-import {db} from "../../blogs/repository/blogRepository";
-import {postPayload} from "../mocks";
+import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
+import {testPostInput} from "../mocks";
+import {testBlog} from "../../blogs/mocks";
+
+const supertest = require('supertest')
 
 const request = supertest(app)
 
-describe('posts GET route tests', () => {
+describe('/posts route GET tests: ', () => {
     beforeEach(async () => {
-        await request.delete('/testing/all-data')
-        db.blogs.push(blogPayload)
+        await request.delete(`/testing/all-data`)
     })
-    it('should return posts', async () => {
-        await blogTestManager.createBlog()
-        await postTestManager.createPost()
 
-        await request.get(RoutesList.POSTS)
-            .expect(HttpStatusCode.OK_200)
-    })
-    it('should return post by id', async () => {
+    it('GET /posts success', async () => {
         const createdPost = await postTestManager.createPost()
+        const result = await request.get(RoutesList.POSTS).expect(HttpStatusCode.OK_200)
 
-        const responseResult = await request.get(`${RoutesList.POSTS}/${createdPost.id}`)
-            .expect(HttpStatusCode.OK_200)
-
-        expect(responseResult.body).toEqual(createdPost)
+        expect(result.body?.length).toBe(1)
+        expect(result.body[0].blogId).toBe(createdPost.body.blogId)
+        expect(result.body[0].title).toBe(createdPost.body.title)
     })
-    it("should return 404 for non existing blog", async () => {
+
+    it('GET /posts/:id success', async () => {
+        const createdPost = await postTestManager.createPost()
+        const result = await request.get(`${RoutesList.POSTS}/${createdPost.body.id}`).expect(HttpStatusCode.OK_200)
+
+        expect(result.body.id).toStrictEqual(expect.any(String))
+        expect(result.body.title).toBe(createdPost.body.title)
+        expect(result.body.blogId).toBe(createdPost.body.blogId)
+        expect(result.body.blogName).toBe(createdPost.body.blogName)
+    })
+
+    it('GET /posts/:id not found', async () => {
         await postTestManager.createPost()
-        await request.get(`${RoutesList.BLOGS}/notExistingPost`)
+        await request.get(`${RoutesList.POSTS}/wrongId`).expect(HttpStatusCode.NOT_FOUND_404)
+    })
+})
+
+describe('/posts route POST tests: ', () => {
+    beforeEach(async () => {
+        await request.delete(`/testing/all-data`)
+    })
+
+    it('POST /posts success', async () => {
+        await postTestManager.createPost({ shouldExpect: true })
+    })
+
+    it('POST /posts failed::auth', async () => {
+        await postTestManager.createPost({
+            user: 'badUser',
+            password: 'badPassword',
+            expectedStatusCode: HttpStatusCode.UNAUTHORIZED_401,
+        })
+        await postTestManager.createPost({
+            password: 'badPassword',
+            expectedStatusCode: HttpStatusCode.UNAUTHORIZED_401,
+        })
+        await postTestManager.createPost({
+            user: 'badUser',
+            expectedStatusCode: HttpStatusCode.UNAUTHORIZED_401,
+        })
+    })
+
+    it('POST /posts failed::title', async () => {
+        await postTestManager.createPost({
+            shouldExpect: true,
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+            checkedData: { field: 'title', value: '1234567890123456789012345678901' },
+        })
+        await postTestManager.createPost({
+            shouldExpect: true,
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+            checkedData: { field: 'title', value: null },
+        })
+    })
+
+    it('POST /posts failed::shortDescription', async () => {
+        await postTestManager.createPost({
+            shouldExpect: true,
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+            checkedData: { field: 'shortDescription', value: '' },
+        })
+    })
+
+    it('POST /posts failed::content', async () => {
+        await postTestManager.createPost({
+            shouldExpect: true,
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+            checkedData: { field: 'content', value: 123 },
+        })
+    })
+
+    it('POST /posts failed::blogId', async () => {
+        await postTestManager.createPost({
+            shouldExpect: true,
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+            checkedData: { field: 'blogId', value: '182736' }
+        })
+        await postTestManager.createPost({
+            shouldExpect: true,
+            expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
+            checkedData: { field: 'blogId', value: null }
+        })
+    })
+})
+
+describe('/posts PUT route tests: ', () => {
+    beforeEach(async () => {
+        await request.delete(`/testing/all-data`)
+    })
+
+    it('PUT /posts success', async () => {
+        const createdPost = await postTestManager.createPost()
+        await request.put(`${RoutesList.POSTS}/${createdPost.body.id}`)
+            .auth('admin', 'qwerty')
+            .send({ ...testPostInput, blogId: createdPost.body.blogId })
+            .expect(HttpStatusCode.NO_CONTENT_204)
+    })
+
+    it('PUT /posts failed::unauthorized', async () => {
+        await request.put(`${RoutesList.POSTS}/${testBlog.id}`)
+            .send('wrong', 'auth')
+            .expect(HttpStatusCode.UNAUTHORIZED_401)
+    })
+
+    it('PUT /posts failed::unauthorized:Bearer', async () => {
+        await request.put(`${RoutesList.POSTS}/${testBlog.id}`)
+            .send('admin', 'qwerty', { type: "bearer" })
+            .expect(HttpStatusCode.UNAUTHORIZED_401)
+    })
+
+    it('PUT /posts failed::titleLength', async () => {
+        const createdPost = await postTestManager.createPost()
+        const res = await request.put(`${RoutesList.POSTS}/${createdPost.body.id}`)
+            .auth('admin', 'qwerty')
+            .send({ ...testPostInput, title: '1234567890123456789012345678901', blogId: createdPost.body.blogId })
+            .expect(HttpStatusCode.BAD_REQUEST_400)
+
+        expect(res.body.errorsMessages.length).toBe(1)
+        expect(res.body.errorsMessages[0].field).toBe('title')
+        expect(res.body.errorsMessages[0].message).toStrictEqual(expect.any(String))
+    })
+
+    it('PUT /posts failed::blogId', async () => {
+        const createdPost = await postTestManager.createPost()
+        const res = await request.put(`${RoutesList.POSTS}/${createdPost.body.id}`)
+            .auth('admin', 'qwerty')
+            .send({ ...testPostInput, blogId: '000000' })
+            .expect(HttpStatusCode.BAD_REQUEST_400)
+
+        expect(res.body.errorsMessages.length).toBe(1)
+        expect(res.body.errorsMessages[0].field).toBe('blogId')
+        expect(res.body.errorsMessages[0].message).toStrictEqual(expect.any(String))
+    })
+
+    it('PUT /posts failed::content', async () => {
+        const createdPost = await postTestManager.createPost()
+        const res = await request.put(`${RoutesList.POSTS}/${createdPost.body.id}`)
+            .auth('admin', 'qwerty')
+            .send({ ...testPostInput, content: null, blogId: createdPost.body.blogId })
+            .expect(HttpStatusCode.BAD_REQUEST_400)
+
+        expect(res.body.errorsMessages.length).toBe(1)
+        expect(res.body.errorsMessages[0].field).toBe('content')
+        expect(res.body.errorsMessages[0].message).toStrictEqual(expect.any(String))
+    })
+})
+
+describe('/posts DELETE tests: ', () => {
+    beforeEach(async () => {
+        await request.delete(`/testing/all-data`)
+    })
+
+    it('DELETE /posts success: ', async () => {
+        const createdPosts = await postTestManager.createPost()
+
+        await request.delete(`${RoutesList.POSTS}/${createdPosts.body.id}`)
+            .auth('admin', 'qwerty')
+            .expect(HttpStatusCode.NO_CONTENT_204)
+
+        const posts = await postsCollection.find({}).toArray()
+
+        expect(posts.length).toBe(0)
+    })
+
+    it('DELETE /posts failed::unauthorized: ', async () => {
+        const createdPosts = await postTestManager.createPost()
+
+        await request.delete(`${RoutesList.POSTS}/${createdPosts.body.id}`)
+            .auth('wrong', 'auth')
+            .expect(HttpStatusCode.UNAUTHORIZED_401)
+
+        const posts = await postsCollection.find({}).toArray()
+
+        expect(posts.length).toBe(1)
+    })
+
+    it('DELETE /posts failed::notFoundPostId: ', async () => {
+        await postTestManager.createPost()
+
+        await request.delete(`${RoutesList.POSTS}/wrongId`)
+            .auth('admin', 'qwerty')
             .expect(HttpStatusCode.NOT_FOUND_404)
-    })
-})
 
-describe("post routes POST tests", () => {
-    beforeEach(async () => {
-        await request.delete('/testing/all-data')
-        db.blogs.push(blogPayload)
-    })
+        const posts = await postsCollection.find({}).toArray()
 
-    it("should create new blog", async () => {
-        await postTestManager.createPost()
+        expect(posts.length).toBe(1)
 
-    })
-    it("should'nt create blog", async () => {
-        const wrongPayload = {
-            title: "",
-            shortDescription: "",
-            content: "",
-            blogId: ""
-        }
-
-        await request.post(RoutesList.POSTS)
-            .auth('admin', 'qwerty')
-            .send(wrongPayload)
-            .expect(HttpStatusCode.BAD_REQUEST_400)
-    })
-    it("should not create without auth", async () => {
-        await request.post(RoutesList.POSTS)
-            .auth('wrongUser', 'wrongPass')
-            .expect(HttpStatusCode.UNAUTHORIZED_401)
-    })
-})
-
-describe("post routes UPDATE tests", () => {
-    beforeEach(async () => {
-        await request.delete('/testing/all-data')
-        db.blogs.push(blogPayload)
-    })
-    it('should update post by id', async () => {
-        const createdPost = await postTestManager.createPost()
-
-        const responseResult = await request.get(`${RoutesList.POSTS}/${createdPost.id}`)
-            .expect(HttpStatusCode.OK_200)
-
-        expect(responseResult.body).toEqual(createdPost)
-
-        await request.put(`${RoutesList.POSTS}/${createdPost.id}`)
-            .auth('admin', 'qwerty')
-            .send({...postPayload})
-            .expect(HttpStatusCode.NO_CONTENT_204)
-
-        const responseResult2 = await request.get(`${RoutesList.POSTS}/${createdPost.id}`)
-            .expect(HttpStatusCode.OK_200)
-
-        expect(responseResult2.body).toEqual({
-            id: expect.any(String),
-            ...postPayload,
-            blogName: responseResult.body.blogName
-        })
-    })
-    it("should'nt create post", async () => {
-        const wrongPayload = {
-            title: "",
-            shortDescription: "",
-            content: "",
-            blogId: ""
-        }
-
-        await request.post(RoutesList.POSTS)
-            .auth('admin', 'qwerty')
-            .send(wrongPayload)
-            .expect(HttpStatusCode.BAD_REQUEST_400)
-    })
-    it("should not create without auth", async () => {
-        await request.post(RoutesList.POSTS)
-            .auth('wrongUser', 'wrongPass')
-            .expect(HttpStatusCode.UNAUTHORIZED_401)
-    })
-})
-
-describe("post routes DELETE tests", () => {
-    beforeEach(async () => {
-        await request.delete('/testing/all-data')
-        db.blogs.push(blogPayload)
-    })
-    it("should delete post by id", async () => {
-        const createdPost = await postTestManager.createPost()
-
-        const responseResult = await request.get(`${RoutesList.POSTS}/${createdPost.id}`)
-            .expect(HttpStatusCode.OK_200)
-
-        expect(responseResult.body).toEqual(createdPost)
-
-        await request.put(`${RoutesList.POSTS}/${createdPost.id}`)
-            .auth('admin', 'qwerty')
-            .send({...postPayload})
-            .expect(HttpStatusCode.NO_CONTENT_204)
-
-        const responseResult2 = await request.get(`${RoutesList.POSTS}/${createdPost.id}`)
-            .expect(HttpStatusCode.OK_200)
-
-        expect(responseResult2.body).toEqual({
-            id: expect.any(String),
-            ...postPayload,
-            blogName: responseResult.body.blogName
-        })
-
-        await request.delete(`${RoutesList.POSTS}/${createdPost.id}`)
-            .auth('admin', 'qwerty')
-            .expect(HttpStatusCode.NO_CONTENT_204)
-    })
-    it("should'nt create post", async () => {
-        const wrongPayload = {
-            title: "",
-            shortDescription: "",
-            content: "",
-            blogId: ""
-        }
-
-        await request.post(RoutesList.POSTS)
-            .auth('admin', 'qwerty')
-            .send(wrongPayload)
-            .expect(HttpStatusCode.BAD_REQUEST_400)
-    })
-    it("should not create without auth", async () => {
-        await request.post(RoutesList.POSTS)
-            .auth('wrongUser', 'wrongPass')
-            .expect(HttpStatusCode.UNAUTHORIZED_401)
     })
 })

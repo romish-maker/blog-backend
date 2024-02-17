@@ -1,47 +1,37 @@
-import {BlogViewModel} from "../models/BlogViewModel";
+import { blogsCollection } from '../../../app/config/db'
 import {BlogInputModel} from "../models/BlogInputModel";
+import {BlogViewModel} from "../models/BlogViewModel";
 
-export const db: { blogs: BlogViewModel[] } = {
-    blogs: [
-        {id: "2002", name: "romish", description: "hi, this is my blog", "websiteUrl": "https://google.com"}
-    ]
-}
 export const blogRepository = {
-    getAllBlogs() {
-        return db.blogs
+    async getAllBlogs() {
+        return blogsCollection.find({}).toArray()
     },
-    createNewBlog(payload: BlogInputModel): BlogViewModel {
+    async getBlogById(blogId: string) {
+        return blogsCollection.findOne({ id: blogId } )
+    },
+    async createNewBlog(payload: BlogInputModel): Promise<BlogViewModel> {
         const newBlog = {
-            id: String(new Date()),
-            ...payload
+            id: String(Date.now()),
+            isMembership: false,
+            createdAt: String(Date.now()),
+            ...payload,
         }
 
-        db.blogs.push(newBlog)
+        await blogsCollection.insertOne({ ...newBlog })
         return newBlog
     },
-    getBlogById(blogId: string) {
-        return db.blogs.find(blog => blog.id === blogId)
+    async updateBlogById(blogId: string, payload: BlogInputModel) {
+        const updatedResult = await blogsCollection.updateOne({ id: blogId }, { $set: {
+                name: payload.name,
+                description: payload.description,
+                websiteUrl: payload.websiteUrl,
+            }})
+
+        return Boolean(updatedResult.matchedCount)
     },
-    updateBlogById(blogId: string, payload: BlogInputModel) {
-        const foundBlog = this.getBlogById(blogId);
+    async deleteBlogById(blogId: string) {
+        const deleteResult = await blogsCollection.deleteOne({ id: blogId })
 
-        if (!foundBlog) {
-            return false
-        }
-
-        db.blogs = db.blogs.map(blog => blog.id === blogId ? {...blog, ...payload} : blog)
-
-        return true
-    },
-    deleteBlogById(blogId: string) {
-        const foundBlog = this.getBlogById(blogId)
-
-        if (!foundBlog) {
-            return false
-        }
-
-        db.blogs = db.blogs.filter(blog => blog.id !== blogId)
-
-        return true
+        return Boolean(deleteResult.deletedCount)
     }
 }
