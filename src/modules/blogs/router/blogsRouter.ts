@@ -1,5 +1,5 @@
 import { Router, Response } from 'express'
-import {blogRepository} from "../repository/blogRepository";
+import {blogsRepository} from "../repository/blogRepository";
 import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
 import {authMiddleware} from "../../../app/config/middleware/authMiddleware";
 import {blogInputValidation} from "../validations/blogValidations";
@@ -9,13 +9,13 @@ import {BlogInputModel} from "../models/BlogInputModel";
 export const blogsRouter = Router()
 
 blogsRouter.get('/', async (req, res) => {
-    const blogs = await blogRepository.getAllBlogs()
+    const blogs = await blogsRepository.getAllBlogs()
 
     res.status(HttpStatusCode.OK_200).send(blogs)
 })
 
 blogsRouter.get('/:blogId', async (req, res) => {
-    const foundBlogById = await blogRepository.getBlogById(req.params.blogId)
+    const foundBlogById = await blogsRepository.getBlogById(req.params.blogId)
 
     if (!foundBlogById) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
@@ -31,7 +31,7 @@ blogsRouter.post('/', authMiddleware, blogInputValidation(), async (req: Request
         description: req.body.description,
         websiteUrl: req.body.websiteUrl,
     }
-    const newBlog = await blogRepository.createNewBlog(newBlogData)
+    const newBlog = await blogsRepository.createNewBlog(newBlogData)
 
     res.status(HttpStatusCode.CREATED_201).send(newBlog)
 })
@@ -43,7 +43,7 @@ blogsRouter.put('/:blogId', authMiddleware, blogInputValidation(), async (req: R
         websiteUrl: req.body.websiteUrl,
     }
 
-    const isBlogUpdated = await blogRepository.updateBlogById(req.params.blogId, updateBlogData)
+    const isBlogUpdated = await blogsRepository.updateBlog(req.params.blogId, updateBlogData)
 
     if (!isBlogUpdated) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
@@ -54,7 +54,7 @@ blogsRouter.put('/:blogId', authMiddleware, blogInputValidation(), async (req: R
 })
 
 blogsRouter.delete('/:blogId', authMiddleware, async (req, res) => {
-    const isDeleted = await blogRepository.deleteBlogById(req.params.blogId)
+    const isDeleted = await blogsRepository.deleteBlog(req.params.blogId)
 
     if (!isDeleted) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)

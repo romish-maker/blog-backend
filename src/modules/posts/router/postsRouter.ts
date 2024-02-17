@@ -1,10 +1,10 @@
 import { Router, Response } from 'express'
-import {postsRepository} from "../repository/postsRepository";
+import { postsRepository } from '../repository/postsRepository'
 import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
 import {authMiddleware} from "../../../app/config/middleware/authMiddleware";
 import {postInputValidation} from "../validations/postValidation";
-import {PostInputModel} from "../models/PostInputModel";
 import {RequestBody, RequestParamsBody} from "../../common/types";
+import {PostInputModel} from "../models/PostInputModel";
 
 export const postsRouter = Router()
 
@@ -34,7 +34,7 @@ postsRouter.post('/', authMiddleware, postInputValidation(),  async (req: Reques
         blogId: req.body.blogId,
     }
 
-    const createdPost = await postsRepository.createNewPost(payload)
+    const createdPost = await postsRepository.createPost(payload)
 
     if (!createdPost) {
         res.sendStatus(HttpStatusCode.BAD_REQUEST_400)
@@ -53,7 +53,7 @@ postsRouter.put('/:postId', authMiddleware, postInputValidation(),  async (req: 
         blogId: req.body.blogId,
     }
 
-    const isPostUpdated = await postsRepository.updatePostById(payload, req.params.postId)
+    const isPostUpdated = await postsRepository.updatePost(payload, req.params.postId)
 
     if (!isPostUpdated) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
