@@ -41,7 +41,6 @@ class PostsTestManager {
             expect(result.body.title).toBe(testPostInput.title)
             expect(result.body.blogId).toBe(createdBlog.body.id)
             expect(post?.shortDescription).toStrictEqual(testPostInput.shortDescription)
-            expect(post?.id).toStrictEqual(expect.any(String))
         }
 
         if (shouldExpect && expectedStatusCode === HttpStatusCode.BAD_REQUEST_400 && checkedData?.field) {

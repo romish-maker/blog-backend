@@ -20,7 +20,7 @@ blogsRouter.get('/', async (req, res) => {
 blogsRouter.get('/:blogId', async (req, res) => {
     const id = req.params.blogId
 
-    if (ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(id)) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
         return
     }

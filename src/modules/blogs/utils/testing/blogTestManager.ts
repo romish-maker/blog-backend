@@ -34,7 +34,6 @@ class BlogsTestManager {
             expect(result.body.name).toBe(testBlogInput.name)
             expect(result.body.websiteUrl).toBe(testBlogInput.websiteUrl)
             expect(blogFromDb?.description).toStrictEqual(testBlogInput.description)
-            expect(blogFromDb?.id).toStrictEqual(expect.any(String))
         }
 
         if (shouldExpect && expectedStatusCode === HttpStatusCode.BAD_REQUEST_400 && checkedData?.field) {

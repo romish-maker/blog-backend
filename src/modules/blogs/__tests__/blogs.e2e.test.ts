@@ -114,7 +114,7 @@ describe('/blogs route PUT tests: ', () => {
         const blog = await blogsCollection.findOne({ id: createdBlog.body.id })
 
         expect(blog?.name).toBe(testUpdateBlogInput.name)
-        expect(blog?.id).toBe(createdBlog.body.id)
+        expect(blog?._id).toBe(createdBlog.body.id)
         expect(blog?.websiteUrl).not.toBe(testBlog.websiteUrl)
     })
 

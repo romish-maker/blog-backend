@@ -20,7 +20,7 @@ postsRouter.get('/', async (req, res) => {
 postsRouter.get('/:postId', async (req, res) => {
     const postId = req.params.postId
 
-    if (ObjectId.isValid(postId)) {
+    if (!ObjectId.isValid(postId)) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
         return
     }
