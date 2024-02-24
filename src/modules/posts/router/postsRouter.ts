@@ -3,7 +3,7 @@ import { postsRepository } from '../repository/postsRepository'
 import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
 import {authMiddleware} from "../../../app/config/middleware/authMiddleware";
 import {postInputValidation} from "../validations/postValidation";
-import {RequestBody, RequestParamsBody} from "../../common/types";
+import {RequestBody, RequestParams, RequestParamsBody} from "../../common/types";
 import {PostInputModel} from "../models/PostInputModel";
 import {ObjectId} from "mongodb";
 import {PostDbType} from "../db/post-db";
@@ -92,8 +92,8 @@ postsRouter.put('/:postId', authMiddleware, postInputValidation(),  async (req: 
     res.sendStatus(HttpStatusCode.NO_CONTENT_204)
 })
 
-postsRouter.delete('/:postId', authMiddleware, async (req, res) => {
-    const foundDeletedPost = await postsRepository.getPostById(req.params.blogId)
+postsRouter.delete('/:postId', authMiddleware, async (req: RequestParams<{ postId: string }>, res) => {
+    const foundDeletedPost = await postsRepository.getPostById(req.params.postId)
 
     if (!foundDeletedPost) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
