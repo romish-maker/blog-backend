@@ -1,40 +1,34 @@
-import { MongoClient, ServerApiVersion } from 'mongodb'
-import 'dotenv/config'
-import { Collections } from './config'
-import {BlogViewModel} from "../../../modules/blogs/models/BlogViewModel";
-import {PostViewModel} from "../../../modules/posts/models/PostViewModel";
+import dotenv from 'dotenv'
+import {MongoClient} from "mongodb";
+import {Collections} from "./config";
+import {AppSettings} from "../../appSettings";
+import {BlogDbType} from "../../../modules/blogs/db/blog-db";
+import {PostDbType} from "../../../modules/posts/db/post-db";
 
+dotenv.config()
 
-const uri = process.env.MONGO_URI
+const uri = process.env.MONGO_URL
+
 if (!uri) {
-    throw new Error('mongo uri not found')
+    throw new Error("mongo uri is not defined")
 }
 
-export const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
-});
+export const client = new MongoClient(uri)
 
-const db = client.db(process.env.MONGO_URL)
-export const blogsCollection = db.collection<BlogViewModel>(Collections.BLOGS)
-export const postsCollection = db.collection<PostViewModel>(Collections.POSTS)
+const database = client.db("blogs-db")
 
-export const runDb = async () => {
+export const blogsCollection = database.collection<BlogDbType>(Collections.BLOGS)
+export const postsCollection = database.collection<PostDbType>(Collections.POSTS)
+
+export const runDb= async () => {
     try {
         await client.connect()
-        await client.db("admin").command({ ping: 1 })
+
+        console.log("Client connected to DB")
+        console.log(`Example app listening to port ${AppSettings.PORT}`)
     } catch (err) {
-        await client.close();
+        console.log(`${err}`)
+
+        await client.close()
     }
 }
-
-const cleanup = async () => {
-    await client.close()
-    process.exit()
-}
-
-process.on('SIGINT', cleanup)
-process.on('SIGTERM', cleanup)
