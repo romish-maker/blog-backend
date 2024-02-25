@@ -15,10 +15,10 @@ export const postsRouter = Router()
 
 postsRouter.get('/', async (req: RequestQuery<QueryPostInputModel>, res) => {
     const sortData = {
-        pageNumber: req.query.pageNumber ?? 1,
-        pageSize: req.query.pageSize ?? 10,
-        sortBy: req.query.sortBy ?? "createdAt",
-        sortDirection: req.query.sortDirection ?? "desc",
+        pageNumber: req.query.pageNumber || 1,
+        pageSize: req.query.pageSize || 10,
+        sortBy: req.query.sortBy || "createdAt",
+        sortDirection: req.query.sortDirection || "desc",
     }
 
     const posts = await postsQueryRepository.getAllPosts(sortData)

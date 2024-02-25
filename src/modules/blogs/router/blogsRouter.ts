@@ -19,11 +19,11 @@ export const blogsRouter = Router()
 
 blogsRouter.get('/', async (req: RequestQuery<QueryBlogInputModel>, res: Response<Pagination<BlogViewModel>>) => {
     const sortData = {
-        searchNameTerm: req.query.searchNameTerm ?? null,
-        sortBy: req.query.sortBy ?? "createdAt",
-        sortDirection: req.query.sortDirection ?? "desc",
-        pageNumber: req.query.pageNumber ?? 1,
-        pageSize: req.query.pageSize ?? 10,
+        searchNameTerm: req.query.searchNameTerm || null,
+        sortBy: req.query.sortBy || "createdAt",
+        sortDirection: req.query.sortDirection || "desc",
+        pageNumber: req.query.pageNumber || 1,
+        pageSize: req.query.pageSize || 10,
     }
     const blogs = await blogsQueryRepository.getAllBlogs(sortData)
 
