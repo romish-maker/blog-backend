@@ -8,10 +8,12 @@ import {SortDataType} from "../models/QueryBlogInputModel";
 export const blogsQueryRepository = {
     async getAllBlogs(queryParams: SortDataType): Promise<Pagination<BlogViewModel>> {
         const { searchNameTerm, sortBy, sortDirection, pageNumber, pageSize } = queryParams
-        let filter: Partial<Record<keyof BlogViewModel, any>> = {}
+        let filter = {}
 
         if (searchNameTerm) {
-            filter.name = { $regex: searchNameTerm, $options: 'i' }
+            filter = {
+                name: { $regex: searchNameTerm, $options: 'i' }
+            }
         }
 
         const foundBlogs = await blogsCollection
