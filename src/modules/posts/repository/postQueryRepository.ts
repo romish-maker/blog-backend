@@ -1,30 +1,39 @@
-import {blogsCollection, postsCollection} from '../../../app/config/db'
+import {postsCollection} from '../../../app/config/db'
 import {PostViewModel} from "../models/PostViewModel";
 import {postsMapper} from "../mapper/posts-mapper";
 import {ObjectId} from "mongodb";
 import {QueryPostInputModel} from "../models/QueryPostInputModel";
-import {Pagination} from "../../../app/models/Pagination";
 
 export const postsQueryRepository = {
-    async getAllPosts(sortData: QueryPostInputModel): Promise<Pagination<PostViewModel>> {
-        const { sortBy, sortDirection, pageNumber, pageSize } = sortData
+    async getPosts(sortData: QueryPostInputModel, blogId?: string) {
+        const sortBy = sortData.sortBy || 'createdAt'
+        const sortDirection = ['asc', 'desc'].includes(sortData.sortDirection) ? sortData.sortDirection : 'desc'
+        const pageNumber = Number(sortData.pageNumber) || 1
+        const pageSize = Number(sortData.pageSize) || 10
 
-        const posts = await postsCollection
-            .find({})
+        let filter: any = {}
+
+        if (blogId) {
+            filter.blogId = blogId
+        }
+
+        const foundPosts = await postsCollection
+            .find(filter)
             .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
             .toArray()
 
-        const totalCount = await blogsCollection.countDocuments()
-
+        const totalCount = await postsCollection.countDocuments(filter)
         const pagesCount = Math.ceil(totalCount / pageSize)
+        const mappedBlogs = foundPosts.map(postsMapper)
+
         return {
-            pagesCount,
-            page: pageNumber,
             pageSize,
+            pagesCount,
             totalCount,
-            items: posts.map(postsMapper)
+            page: pageNumber,
+            items: mappedBlogs,
         }
     },
     async getPostById(postId: string): Promise<PostViewModel | null> {

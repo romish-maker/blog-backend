@@ -7,20 +7,15 @@ import {SortDataType, SortDataTypeForSpecificBlog} from "../models/QueryBlogInpu
 import {postsMapper} from "../../posts/mapper/posts-mapper";
 
 export const blogsQueryRepository = {
-    async getAllBlogs(sortData: SortDataType): Promise<Pagination<BlogViewModel>> {
-        const { searchNameTerm, sortBy, sortDirection, pageNumber, pageSize } = sortData
-
-        let filter = {};
+    async getAllBlogs(queryParams: SortDataType): Promise<Pagination<BlogViewModel>> {
+        const { searchNameTerm, sortBy, sortDirection, pageNumber, pageSize } = queryParams
+        let filter: Partial<Record<keyof BlogViewModel, any>> = {}
 
         if (searchNameTerm) {
-            filter = {
-                name: {
-                    $regex: searchNameTerm,
-                    $options: "i"
-                }
-            }
+            filter.name = { $regex: searchNameTerm, $options: 'i' }
         }
-        const blogs = await blogsCollection
+
+        const foundBlogs = await blogsCollection
             .find(filter)
             .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
@@ -28,16 +23,18 @@ export const blogsQueryRepository = {
             .toArray()
 
         const totalCount = await blogsCollection.countDocuments(filter)
-
         const pagesCount = Math.ceil(totalCount / pageSize)
+        const mappedBlogs = foundBlogs.map(blogMapper)
+
         return {
             pageSize,
             pagesCount,
             totalCount,
             page: pageNumber,
-            items: blogs.map(blogMapper),
+            items: mappedBlogs,
         }
     },
+
     async getAllPostsFromSpecificBlog(blogId: string, sortData: SortDataTypeForSpecificBlog) {
         const { sortBy, sortDirection, pageNumber, pageSize } = sortData
 

@@ -4,7 +4,7 @@ import {SortDirection} from "mongodb";
 export type QueryBlogInputModel = {
     searchNameTerm?: string;
     sortBy?: string;
-    sortDirection?: SortDirection;
+    sortDirection?: string;
     pageNumber?: number;
     pageSize?: number;
 }
@@ -13,7 +13,7 @@ export type QueryBlogInputModel = {
 export type SortDataType = {
     searchNameTerm: string | null;
     sortBy: string;
-    sortDirection: SortDirection;
+    sortDirection: string;
     pageNumber: number;
     pageSize: number;
 }
@@ -21,7 +21,7 @@ export type SortDataType = {
 // for presentation level (route)
 export type QueryPostInputModel = {
     sortBy?: string;
-    sortDirection?: SortDirection;
+    sortDirection?: string;
     pageNumber?: number;
     pageSize?: number;
 }

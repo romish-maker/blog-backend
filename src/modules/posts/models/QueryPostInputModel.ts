@@ -1,8 +1,7 @@
-import {SortDirection} from "mongodb";
 
 export type QueryPostInputModel = {
     sortBy: string;
-    sortDirection: SortDirection;
+    sortDirection: string;
     pageNumber: number;
     pageSize: number;
 }

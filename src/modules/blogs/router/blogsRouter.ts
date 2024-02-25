@@ -14,6 +14,7 @@ import {createPostFromBlogValidation} from "../../posts/validations/postValidati
 import {CreatePostFromBlogInputModel} from "../models/CreatePostFromBlogInputModel";
 import {PostViewModel} from "../../posts/models/PostViewModel";
 import {BlogServices} from "../services/BlogServices";
+import {postsQueryRepository} from "../../posts/repository/postQueryRepository";
 
 export const blogsRouter = Router()
 
@@ -41,13 +42,13 @@ blogsRouter.get('/:blogId/posts', async (req: RequestQueryParams<QueryPostInputM
     }
 
     const sortData = {
-        pageNumber: req.query.pageNumber ?? 1,
-        pageSize: req.query.pageSize ?? 10,
         sortBy: req.query.sortBy ?? "createdAt",
         sortDirection: req.query.sortDirection ?? "desc",
+        pageNumber: req.query.pageNumber ?? 1,
+        pageSize: req.query.pageSize ?? 10,
     }
 
-    const posts = await blogsQueryRepository.getAllPostsFromSpecificBlog(blogId, sortData)
+    const posts = await postsQueryRepository.getPosts(sortData, blogId)
 
     res.status(HttpStatusCode.OK_200).send(posts)
 })
