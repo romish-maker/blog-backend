@@ -5,5 +5,4 @@ export type PostDbType = {
     blogId: string
     blogName: string;
     createdAt?: string
-
 }

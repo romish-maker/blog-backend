@@ -3,16 +3,25 @@ import { postsRepository } from '../repository/postsRepository'
 import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
 import {authMiddleware} from "../../../app/config/middleware/authMiddleware";
 import {postInputValidation} from "../validations/postValidation";
-import {RequestBody, RequestParams, RequestParamsBody} from "../../common/types";
+import {RequestBody, RequestParams, RequestParamsBody, RequestQuery} from "../../common/types";
 import {PostInputModel} from "../models/PostInputModel";
 import {ObjectId} from "mongodb";
 import {PostDbType} from "../db/post-db";
-import {blogsRepository} from "../../blogs/repository/blogRepository";
+import {blogsRepository} from "../../blogs/repository/blogsRepository";
+import {postsQueryRepository} from "../repository/postQueryRepository";
+import {QueryPostInputModel} from "../models/QueryPostInputModel";
 
 export const postsRouter = Router()
 
-postsRouter.get('/', async (req, res) => {
-    const posts = await postsRepository.getAllPosts()
+postsRouter.get('/', async (req: RequestQuery<QueryPostInputModel>, res) => {
+    const sortData = {
+        pageNumber: req.query.pageNumber ?? 1,
+        pageSize: req.query.pageSize ?? 10,
+        sortBy: req.query.sortBy ?? "createdAt",
+        sortDirection: req.query.sortDirection ?? "desc",
+    }
+
+    const posts = await postsQueryRepository.getAllPosts(sortData)
 
     res.status(HttpStatusCode.OK_200).send(posts)
 })

@@ -1,6 +1,6 @@
 import { body } from 'express-validator'
 import {inputValidationMiddleware} from "../../../app/config/middleware/InputValidationMiddleware";
-import {blogsRepository} from "../../blogs/repository/blogRepository";
+import {blogsQueryRepository} from "../../blogs/repository/blogsQueryRepository";
 
 const titleValidation = body('title')
     .isString().withMessage('Must be string').trim()
@@ -17,7 +17,7 @@ const contentValidation = body('content')
 const blogIdValidation = body('blogId')
     .isString().withMessage('Should be a string')
     .custom(async (blogId: string) => {
-        const existingBlog = await blogsRepository.getBlogById(blogId)
+        const existingBlog = await blogsQueryRepository.getBlogById(blogId)
 
         if (!existingBlog) {
             throw new Error('There is no blogs with this id')
@@ -29,5 +29,12 @@ export const postInputValidation = () => [
     shortDescriptionValidation,
     contentValidation,
     blogIdValidation,
+    inputValidationMiddleware,
+]
+
+export const createPostFromBlogValidation = () => [
+    titleValidation,
+    shortDescriptionValidation,
+    contentValidation,
     inputValidationMiddleware,
 ]

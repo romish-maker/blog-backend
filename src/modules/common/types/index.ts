@@ -14,3 +14,8 @@ export interface RequestParamsBody<P, B> extends Express.Request {
 export interface RequestQuery<Q> extends Express.Request {
     query: Q
 }
+
+export interface RequestQueryParams<Q, P> extends Express.Request {
+    query: Q
+    params: P
+}

@@ -1,29 +1,22 @@
 import { blogsCollection } from '../../../app/config/db'
-import {BlogViewModel} from "../models/BlogViewModel";
-import {blogMapper} from "../mapper/blog-mapper";
 import {ObjectId} from "mongodb";
 import {BlogInputModel} from "../models/BlogInputModel";
 import {BlogDbType} from "../db/blog-db";
 
 export const blogsRepository = {
-    async getAllBlogs(): Promise<BlogViewModel[]> {
-        const blogs = await blogsCollection.find({}).toArray()
+    async createNewBlog(payload: BlogDbType): Promise<string> {
+        const response = await blogsCollection.insertOne(payload)
 
-        return blogs.map(blogMapper)
+        return response.insertedId.toString()
     },
-    async getBlogById(blogId: string): Promise<BlogViewModel | null> {
+    async getBlogById(blogId: string): Promise<BlogDbType | null> {
         const blog = await blogsCollection.findOne({_id: new ObjectId(blogId)})
 
         if (!blog) {
             return null
         }
 
-        return blogMapper(blog)
-    },
-    async createNewBlog(payload: BlogDbType): Promise<string> {
-        const response = await blogsCollection.insertOne(payload)
-
-        return response.insertedId.toString()
+        return blog
     },
     async updateBlog(blogId: string, payload: BlogInputModel): Promise<boolean> {
         const updateResult = await blogsCollection.updateOne({_id: new ObjectId(blogId)}, {
