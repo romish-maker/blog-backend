@@ -26,14 +26,14 @@ export const postsQueryRepository = {
 
         const totalCount = await postsCollection.countDocuments(filter)
         const pagesCount = Math.ceil(totalCount / pageSize)
-        const mappedBlogs = foundPosts.map(postsMapper)
+        const mappedPosts = foundPosts.map(postsMapper)
 
         return {
             pageSize,
             pagesCount,
             totalCount,
             page: pageNumber,
-            items: mappedBlogs,
+            items: mappedPosts,
         }
     },
     async getPostById(postId: string): Promise<PostViewModel | null> {
