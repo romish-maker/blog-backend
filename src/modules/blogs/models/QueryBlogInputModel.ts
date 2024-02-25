@@ -2,7 +2,7 @@ import {SortDirection} from "mongodb";
 
 // for presentation level (route)
 export type QueryBlogInputModel = {
-    searchNameTerm?: string;
+    searchNameTerm?: string | null;
     sortBy?: string;
     sortDirection?: string;
     pageNumber?: number;
