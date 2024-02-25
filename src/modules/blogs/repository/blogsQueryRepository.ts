@@ -22,20 +22,20 @@ export const blogsQueryRepository = {
         }
         const blogs = await blogsCollection
             .find(filter)
-            .sort(sortBy, sortDirection)
+            .sort({ [sortBy]: sortDirection === 'asc' ? 1 : -1 })
             .skip((pageNumber - 1) * pageSize)
             .limit(pageSize)
             .toArray()
 
-        const totalCount = await blogsCollection.countDocuments()
+        const totalCount = await blogsCollection.countDocuments(filter)
 
         const pagesCount = Math.ceil(totalCount / pageSize)
         return {
-            pagesCount,
-            page: pageNumber,
             pageSize,
+            pagesCount,
             totalCount,
-            items: blogs.map(blogMapper)
+            page: pageNumber,
+            items: blogs.map(blogMapper),
         }
     },
     async getAllPostsFromSpecificBlog(blogId: string, sortData: SortDataTypeForSpecificBlog) {
