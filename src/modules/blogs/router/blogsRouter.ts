@@ -33,6 +33,13 @@ blogsRouter.get('/', async (req: RequestQuery<QueryBlogInputModel>, res: Respons
 blogsRouter.get('/:blogId/posts', async (req: RequestQueryParams<QueryPostInputModel, {blogId: string}>, res: Response<Pagination<PostViewModel>>) => {
     const blogId = req.params.blogId
 
+    const blog = await blogsQueryRepository.getBlogById(blogId)
+
+    if (!blog) {
+        res.sendStatus(HttpStatusCode.NOT_FOUND_404)
+        return
+    }
+
     const sortData = {
         pageNumber: req.query.pageNumber ?? 1,
         pageSize: req.query.pageSize ?? 10,
