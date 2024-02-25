@@ -1,10 +1,9 @@
-import {blogsCollection, postsCollection} from '../../../app/config/db'
+import {blogsCollection} from '../../../app/config/db'
 import {BlogViewModel} from "../models/BlogViewModel";
 import {blogMapper} from "../mapper/blog-mapper";
 import {ObjectId} from "mongodb";
 import {Pagination} from "../../../app/models/Pagination";
-import {SortDataType, SortDataTypeForSpecificBlog} from "../models/QueryBlogInputModel";
-import {postsMapper} from "../../posts/mapper/posts-mapper";
+import {SortDataType} from "../models/QueryBlogInputModel";
 
 export const blogsQueryRepository = {
     async getAllBlogs(queryParams: SortDataType): Promise<Pagination<BlogViewModel>> {
@@ -32,28 +31,6 @@ export const blogsQueryRepository = {
             totalCount,
             page: pageNumber,
             items: mappedBlogs,
-        }
-    },
-
-    async getAllPostsFromSpecificBlog(blogId: string, sortData: SortDataTypeForSpecificBlog) {
-        const { sortBy, sortDirection, pageNumber, pageSize } = sortData
-
-        const posts = await postsCollection
-            .find({blogId: blogId})
-            .sort(sortBy, sortDirection)
-            .skip((pageNumber - 1) * pageSize)
-            .limit(pageSize)
-            .toArray()
-
-        const totalCount = await blogsCollection.countDocuments()
-
-        const pagesCount = Math.ceil(totalCount / pageSize)
-        return {
-            pagesCount,
-            page: pageNumber,
-            pageSize,
-            totalCount,
-            items: posts.map(postsMapper)
         }
     },
     async getBlogById(blogId: string): Promise<BlogViewModel | null> {

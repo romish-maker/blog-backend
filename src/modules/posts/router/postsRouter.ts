@@ -21,7 +21,7 @@ postsRouter.get('/', async (req: RequestQuery<QueryPostInputModel>, res) => {
         sortDirection: req.query.sortDirection || "desc",
     }
 
-    const posts = await postsQueryRepository.getAllPosts(sortData)
+    const posts = await postsQueryRepository.getPosts(sortData)
 
     res.status(HttpStatusCode.OK_200).send(posts)
 })
