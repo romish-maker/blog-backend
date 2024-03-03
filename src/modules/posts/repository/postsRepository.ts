@@ -6,11 +6,6 @@ import {ObjectId} from "mongodb";
 import {PostDbType} from "../db/post-db";
 
 export const postsRepository = {
-    async getAllPosts(): Promise<PostViewModel[]> {
-        const posts = await postsCollection.find({}).toArray()
-
-        return posts.map(postsMapper)
-    },
     async getPostById(postId: string): Promise<PostViewModel | null> {
         const post = await postsCollection.findOne({_id: new ObjectId(postId)})
 

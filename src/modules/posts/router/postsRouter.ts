@@ -10,6 +10,7 @@ import {PostDbType} from "../db/post-db";
 import {blogsRepository} from "../../blogs/repository/blogsRepository";
 import {postsQueryRepository} from "../repository/postQueryRepository";
 import {QueryPostInputModel} from "../models/QueryPostInputModel";
+import {PostServices} from "../services/PostServices";
 
 export const postsRouter = Router()
 
@@ -46,7 +47,8 @@ postsRouter.get('/:postId', async (req, res) => {
 })
 
 postsRouter.post('/', authMiddleware, postInputValidation(),  async (req: RequestBody<PostInputModel>, res: Response) => {
-    const blogData = await blogsRepository.getBlogById(req.body.blogId)
+    const blogId = req.body.blogId
+    const blogData = await blogsRepository.getBlogById(blogId)
 
     if (!blogData) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
@@ -62,9 +64,7 @@ postsRouter.post('/', authMiddleware, postInputValidation(),  async (req: Reques
         blogName: blogData.name
     }
 
-    const newPostId = await postsRepository.createPost(payload)
-
-    const newPost = await postsRepository.getPostById(newPostId)
+    const newPost = await PostServices.createPost(payload)
 
     if (!newPost) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
@@ -75,6 +75,8 @@ postsRouter.post('/', authMiddleware, postInputValidation(),  async (req: Reques
 })
 
 postsRouter.put('/:postId', authMiddleware, postInputValidation(),  async (req: RequestParamsBody<{ postId: string }, PostInputModel>, res: Response) => {
+    const postId = req.params.postId
+
     const payload: PostInputModel = {
         title: req.body.title,
         shortDescription: req.body.shortDescription,
@@ -82,16 +84,7 @@ postsRouter.put('/:postId', authMiddleware, postInputValidation(),  async (req: 
         blogId: req.body.blogId,
     }
 
-    const foundPost = await postsRepository.getPostById(req.params.postId)
-
-    if (!foundPost) {
-        res.sendStatus(HttpStatusCode.NOT_FOUND_404)
-        return
-    }
-
-
-    const isPostUpdated = await postsRepository.updatePost(payload, req.params.postId)
-
+    const isPostUpdated = await PostServices.updatePost(postId, payload)
     if (!isPostUpdated) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
 
@@ -102,15 +95,9 @@ postsRouter.put('/:postId', authMiddleware, postInputValidation(),  async (req: 
 })
 
 postsRouter.delete('/:postId', authMiddleware, async (req: RequestParams<{ postId: string }>, res) => {
-    const foundDeletedPost = await postsRepository.getPostById(req.params.postId)
+    const postId = req.params.postId
 
-    if (!foundDeletedPost) {
-        res.sendStatus(HttpStatusCode.NOT_FOUND_404)
-        return
-    }
-
-
-    const isDeleted = await postsRepository.deletePostById(req.params.postId)
+    const isDeleted = await PostServices.deleteBlog(postId)
 
     if (!isDeleted) {
         res.sendStatus(HttpStatusCode.NOT_FOUND_404)
