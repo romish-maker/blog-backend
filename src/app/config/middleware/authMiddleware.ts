@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from 'express'
+import { NextFunction, Response } from 'express'
 import {HttpStatusCode} from "../../../modules/common/enums/HttpsStatusCodes";
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = (req: any, res: Response, next: NextFunction) => {
     if (!req.headers.authorization || !req.headers.authorization.includes('Basic')) {
         res.sendStatus(HttpStatusCode.UNAUTHORIZED_401)
 

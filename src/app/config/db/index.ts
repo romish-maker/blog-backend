@@ -4,6 +4,7 @@ import {Collections} from "./config";
 import {AppSettings} from "../../appSettings";
 import {BlogDbType} from "../../../modules/blogs/db/blog-db";
 import {PostDbType} from "../../../modules/posts/db/post-db";
+import {UserDbType} from "../../../modules/users/db/user-db";
 
 dotenv.config()
 
@@ -19,6 +20,7 @@ const database = client.db("blogs-db")
 
 export const blogsCollection = database.collection<BlogDbType>(Collections.BLOGS)
 export const postsCollection = database.collection<PostDbType>(Collections.POSTS)
+export const usersCollection = database.collection<UserDbType>(Collections.USERS)
 
 export const runDb= async () => {
     try {
