@@ -3,4 +3,5 @@ export enum RoutesList {
     BLOGS = "/blogs",
     POSTS = "/posts",
     USERS = "/users",
+    AUTH = "/auth",
 }

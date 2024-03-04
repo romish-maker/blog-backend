@@ -33,9 +33,9 @@ export const usersQueryRepository = {
 
         return {
             pagesCount,
-            totalCount,
             page: sortData.pageNumber,
             pageSize: sortData.pageSize,
+            totalCount,
             items: mappedUsers,
         }
     },
