@@ -8,6 +8,7 @@ testingRouter.delete('/all-data', async (req, res) => {
     await blogsCollection.deleteMany({})
     await postsCollection.deleteMany({})
     await usersCollection.deleteMany({})
+    // await commentsCollection.deleteMany({}) ??
 
     res.sendStatus(HttpStatusCode.NO_CONTENT_204)
 })

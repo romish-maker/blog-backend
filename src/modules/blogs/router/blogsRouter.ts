@@ -2,12 +2,17 @@ import { Router, Response } from 'express'
 import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
 import {authMiddleware} from "../../../app/config/middleware/authMiddleware";
 import {blogInputValidation} from "../validations/blogValidations";
-import {RequestBody, RequestParamsBody, RequestQuery, RequestQueryParams} from "../../common/types";
+import {
+    PaginationAndSortQuery,
+    RequestBody,
+    RequestParamsBody, RequestParamsQuery,
+    RequestQuery,
+} from "../../common/types";
 import {BlogInputModel} from "../models/BlogInputModel";
 import {ObjectId} from "mongodb";
 import {BlogViewModel} from "../models/BlogViewModel";
 import {BlogDbType} from "../db/blog-db";
-import {QueryBlogInputModel, QueryPostInputModel} from "../models/QueryBlogInputModel";
+import {QueryBlogInputModel} from "../models/QueryBlogInputModel";
 import {blogsQueryRepository} from "../repository/blogsQueryRepository";
 import {Pagination} from "../../../app/models/Pagination";
 import {createPostFromBlogValidation} from "../../posts/validations/postValidation";
@@ -31,27 +36,19 @@ blogsRouter.get('/', async (req: RequestQuery<QueryBlogInputModel>, res: Respons
     res.status(HttpStatusCode.OK_200).send(blogs)
 })
 
-blogsRouter.get('/:blogId/posts', async (req: RequestQueryParams<QueryPostInputModel, {blogId: string}>, res: Response<Pagination<PostViewModel>>) => {
-    const blogId = req.params.blogId
+blogsRouter.get('/:blogId/posts',
+    async (req: RequestParamsQuery<{ blogId: string }, PaginationAndSortQuery>, res: Response) => {
+        const foundBlogById = await blogsQueryRepository.getBlogById(req.params.blogId)
 
-    const blog = await blogsQueryRepository.getBlogById(blogId)
+        if (!foundBlogById) {
+            res.sendStatus(HttpStatusCode.NOT_FOUND_404)
+            return
+        }
 
-    if (!blog) {
-        res.sendStatus(HttpStatusCode.NOT_FOUND_404)
-        return
-    }
+        const foundPostsById = await postsQueryRepository.getPosts(req.query, req.params.blogId)
 
-    const sortData = {
-        sortBy: req.query.sortBy ?? "createdAt",
-        sortDirection: req.query.sortDirection ?? "desc",
-        pageNumber: req.query.pageNumber ?? 1,
-        pageSize: req.query.pageSize ?? 10,
-    }
-
-    const posts = await postsQueryRepository.getPosts(sortData, blogId)
-
-    res.status(HttpStatusCode.OK_200).send(posts)
-})
+        res.status(HttpStatusCode.OK_200).send(foundPostsById)
+    })
 
 blogsRouter.get('/:blogId', async (req, res) => {
     const id = req.params.blogId
