@@ -8,6 +8,8 @@ import {authRouter} from "../modules/auth/router/authRouter";
 
 export const AppSettings = {
     PORT: 5000,
+    JWT_SECRET: process.env.JWT_SECRET,
+    JWT_EXPIRES: "1h"
 }
 
 export const app = express()

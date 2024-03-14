@@ -1,7 +1,7 @@
 import {usersCollection} from "../../../app/config/db";
 
 export const authRepository = {
-    async getUserPasswordHash(loginOrEmail: string) {
+    async getUser(loginOrEmail: string) {
         const users = await usersCollection.find({
             $or: [
                 { login: loginOrEmail },
@@ -13,6 +13,6 @@ export const authRepository = {
             return false
         }
 
-        return users[0].passwordHash
+        return users[0]
     }
 }

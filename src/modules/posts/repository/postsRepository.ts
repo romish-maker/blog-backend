@@ -1,9 +1,10 @@
-import {postsCollection} from '../../../app/config/db'
+import {commentsCollection, postsCollection} from '../../../app/config/db'
 import {PostInputModel} from "../models/PostInputModel";
 import {PostViewModel} from "../models/PostViewModel";
 import {postsMapper} from "../mapper/posts-mapper";
 import {ObjectId} from "mongodb";
 import {PostDbType} from "../db/post-db";
+import {CommentDbType} from "../../comments/models/CommentDbType";
 
 export const postsRepository = {
     async getPostById(postId: string): Promise<PostViewModel | null> {
@@ -19,6 +20,11 @@ export const postsRepository = {
         const response = await postsCollection.insertOne(payload)
 
         return response.insertedId.toString()
+    },
+    async createCommentToPost(newComment: CommentDbType) {
+        const result = await commentsCollection.insertOne(newComment)
+
+        return result.insertedId.toString()
     },
     async updatePost(payload: PostInputModel, postId: string) {
         const updateResult = await postsCollection.updateOne({_id: new ObjectId(postId)}, {

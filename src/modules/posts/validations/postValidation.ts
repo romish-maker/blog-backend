@@ -1,6 +1,9 @@
 import { body } from 'express-validator'
 import {inputValidationMiddleware} from "../../../app/config/middleware/InputValidationMiddleware";
 import {blogsQueryRepository} from "../../blogs/repository/blogsQueryRepository";
+import {NextFunction} from "express";
+import {HttpStatusCode} from "../../common/enums/HttpsStatusCodes";
+import {isValidId} from "../../common/validations";
 
 const titleValidation = body('title')
     .isString().withMessage('Must be string').trim()
@@ -38,3 +41,13 @@ export const createPostFromBlogValidation = () => [
     contentValidation,
     inputValidationMiddleware,
 ]
+
+export function postIdValidationMW(req: any, res: any, next: NextFunction) {
+    if (!isValidId(req.params.postId)) {
+        res.sendStatus(HttpStatusCode.NOT_FOUND_404)
+
+        return
+    }
+
+    next()
+}

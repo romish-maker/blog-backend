@@ -6,6 +6,11 @@ export interface RequestParams<P> extends Express.Request {
     params: P
 }
 
+export interface RequestParamsQuery<P, Q> extends Express.Request {
+    params: P
+    query: Q
+}
+
 export interface RequestParamsBody<P, B> extends Express.Request {
     params: P
     body: B
@@ -19,3 +24,15 @@ export interface RequestQueryParams<Q, P> extends Express.Request {
     query: Q
     params: P
 }
+
+export type PaginationQuery = {
+    pageNumber?: number
+    pageSize?: number
+}
+
+export type SortQuery = {
+    sortBy?: string
+    sortDirection?: 'asc' | 'desc'
+}
+
+export type PaginationAndSortQuery = PaginationQuery & SortQuery

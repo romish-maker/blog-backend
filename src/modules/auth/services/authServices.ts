@@ -1,14 +1,20 @@
 import {authRepository} from "../repository/authRepository";
 import {cryptService} from "../../common/services/cryptServices";
+import {jwtService} from "../../common/services/jwtService";
 
 export const authServices = {
     async checkUser(loginOrEmail: string, password: string) {
-        const userPasswordHash = await authRepository.getUserPasswordHash(loginOrEmail, password)
-
-        if (!userPasswordHash) {
+        const user = await authRepository.getUser(loginOrEmail)
+        if (!user) {
             return false
         }
 
-        return await cryptService.checkPassword(password, userPasswordHash)
+        const isPasswordValid = await cryptService.checkPassword(password, user.passwordHash)
+
+        if (!isPasswordValid) {
+            return false
+        }
+
+        return await jwtService.createJWT(user)
     },
 }

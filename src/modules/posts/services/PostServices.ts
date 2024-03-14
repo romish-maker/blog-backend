@@ -2,6 +2,12 @@ import {PostDbType} from "../db/post-db";
 import {postsRepository} from "../repository/postsRepository";
 import {PostViewModel} from "../models/PostViewModel";
 import {PostInputModel} from "../models/PostInputModel";
+import {usersQueryRepository} from "../../users/repository/usersQueryRepository";
+import {postsQueryRepository} from "../repository/postQueryRepository";
+import {CommentInputModel} from "../../comments/models/CommentInputModel";
+import {ResultToRouterStatus} from "../../common/enums/ResultToRuterStatus";
+import {CommentDbType} from "../../comments/models/CommentDbType";
+import {commentRepository} from "../../comments/repository/commentRepository";
 
 export const PostServices = {
     async createPost(createPostBody: PostDbType): Promise<PostViewModel | null> {
@@ -17,6 +23,33 @@ export const PostServices = {
         const newPostId = await postsRepository.createPost(payload)
 
         return await postsRepository.getPostById(newPostId)
+    },
+    async createCommentToPost(postId: string, userId: string, payload: CommentInputModel) {
+        const post = await postsQueryRepository.getPostById(postId)
+        const user = await usersQueryRepository.getUserById(userId)
+
+        if (!(post && user)) {
+            return {
+                status: ResultToRouterStatus.NOT_FOUND
+            }
+        }
+
+        const newComment: CommentDbType = {
+            postId,
+            content: payload.content,
+            commentatorInfo: {
+                userId,
+                userLogin: user.login,
+            },
+            createdAt: new Date().toISOString(),
+        }
+
+        const commentId = await postsRepository.createCommentToPost(newComment)
+
+        return {
+            status: ResultToRouterStatus.SUCCESS,
+            data: { commentId },
+        }
     },
     async updatePost(postId: string, updatePostBody: PostInputModel): Promise<boolean | null> {
         const foundPost = await postsRepository.getPostById(postId)
