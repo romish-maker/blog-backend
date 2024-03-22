@@ -9,11 +9,11 @@ const loginValidation = body("login")
     }).matches(/^[a-zA-Z0-9_-]*$/).withMessage('Login should be latin letters and numbers')
     .custom(uniqueLoginCheck).withMessage('This login is already exists')
 
-const emailValidation = body("email")
+const emailValidation = body('email')
     .isString()
     .notEmpty()
-    .isEmail().withMessage("Should be a valid email")
-    .custom(uniqueEmailCheck).withMessage("This email is already exists")
+    .isEmail().withMessage('Should be a valid email')
+    .custom(uniqueEmailCheck).withMessage('This email is already exists')
 
 const passwordValidation = body("password").isLength({min: 6, max: 20})
 
@@ -33,7 +33,7 @@ async function uniqueLoginCheck(login: string) {
 }
 
 async function uniqueEmailCheck(email: string) {
-    const user = await usersCollection.findOne({ email: email })
+    const user = await usersCollection.findOne({ 'userData.email': email })
     if (user) {
         throw new Error(`This login is already exists`)
     }
