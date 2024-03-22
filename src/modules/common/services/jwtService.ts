@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken'
-import { ObjectId, WithId } from 'mongodb'
+import {  WithId } from 'mongodb'
 import { AppSettings } from '../../../app/appSettings'
-import {UserDbType} from "../../users/db/user-db";
+import {UserDbModel} from "../../users/models/UserDbModel";
 
 export const jwtService = {
-    async createJWT(user: WithId<UserDbType>) {
+    async createJWT(user: WithId<UserDbModel>) {
         if (!AppSettings.JWT_SECRET) {
             return false
         }
