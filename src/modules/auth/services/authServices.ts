@@ -14,7 +14,7 @@ import {ErrorMessageHandleResult, errorMessagesHandleService} from "../../common
 
 export const authServices = {
     async checkUser(loginOrEmail: string, password: string) {
-        const user = await authRepository.getUser(loginOrEmail)
+        const user = await authQueryRepository.getUserByLoginOrEmail(loginOrEmail)
         if (!user) {
             return false
         }
