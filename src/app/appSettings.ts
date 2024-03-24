@@ -30,7 +30,7 @@ app.use(RoutesList.POSTS, postsRouter)
 app.use(RoutesList.USERS, usersRouter)
 app.use(RoutesList.AUTH, authRouter)
 app.use(RoutesList.COMMENTS, commentsRouter)
-app.use('/testing', testingRouter)
+app.use(RoutesList.TESTING, testingRouter)
 
 app.use(RoutesList.BASE, (req: Request, res: Response) => {
     res.send('Hi express')

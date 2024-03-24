@@ -1,4 +1,4 @@
-import { Collection, MongoClient, ServerApiVersion } from 'mongodb'
+import { Collection, MongoClient } from 'mongodb'
 import 'dotenv/config'
 import { AppSettings } from '../../appSettings'
 import { Collections } from './config'
@@ -21,13 +21,7 @@ async function runDb() {
         throw new Error('!!! MONGODB_URI not found')
     }
 
-    client = new MongoClient(uri, {
-        serverApi: {
-            version: ServerApiVersion.v1,
-            strict: true,
-            deprecationErrors: true,
-        }
-    });
+    client = new MongoClient(uri);
 
     const db = client.db("blogs-db")
     blogsCollection = db.collection<BlogDbType>(Collections.BLOGS)

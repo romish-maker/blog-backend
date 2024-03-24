@@ -16,7 +16,6 @@ describe('/blogs route GET tests: ',() => {
         await memoryService.connect()
     })
     afterAll(async () => {
-        // Closing the DB connection allows Jest to exit successfully.
         await memoryService.close()
     })
     beforeEach(async () => {
