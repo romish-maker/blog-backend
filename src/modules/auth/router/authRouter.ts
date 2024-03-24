@@ -25,7 +25,7 @@ authRouter.post('/login', authPostValidation(), async (req: RequestBody<AuthInpu
 })
 
 authRouter.post('/refresh-token', async (req: Request, res: Response) => {
-    const refreshToken = req.cookies.refreshToken
+    const refreshToken = req.cookies?.refreshToken
     if (!refreshToken) {
         res.sendStatus(HttpStatusCode.UNAUTHORIZED_401)
         return
