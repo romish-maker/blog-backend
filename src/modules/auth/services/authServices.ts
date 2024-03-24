@@ -49,7 +49,6 @@ export const authServices = {
             return operationsResultService.generateResponse(ResultToRouterStatus.NOT_AUTHORIZED)
         }
 
-
         const { accessToken, refreshToken: updatedRefreshToken } = await jwtService.createTokenPair(userFromDb)
 
         if (!accessToken || !updatedRefreshToken) {
@@ -63,6 +62,7 @@ export const authServices = {
             { accessToken, refreshToken: updatedRefreshToken },
         )
     },
+
     async logoutUser(refreshToken: string) {
         const userId = await jwtService.getUserIdByToken(refreshToken)
         const user = userId && await authQueryRepository.getUserMeModelById(userId)
