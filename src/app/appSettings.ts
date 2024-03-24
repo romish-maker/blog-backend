@@ -6,6 +6,7 @@ import {postsRouter} from "../modules/posts/router/postsRouter";
 import {usersRouter} from "../modules/users/router/usersRouter";
 import {authRouter} from "../modules/auth/router/authRouter";
 import {commentsRouter} from "../modules/comments/router/commentsRouter";
+import cookieParser from "cookie-parser";
 
 export const AppSettings = {
     PORT: 5000,
@@ -19,8 +20,10 @@ export const AppSettings = {
 
 export const app = express()
 const jsonParseMiddleware = express.json()
+const cookieParserMiddleware = cookieParser()
 
 app.use(jsonParseMiddleware)
+app.use(cookieParserMiddleware)
 app.use(RoutesList.BLOGS, blogsRouter)
 app.use(RoutesList.POSTS, postsRouter)
 app.use(RoutesList.USERS, usersRouter)
