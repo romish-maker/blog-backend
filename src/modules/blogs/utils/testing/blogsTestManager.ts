@@ -1,12 +1,14 @@
 import { blogsCollection } from '../../../../app/config/db'
-import {app} from "../../../../app/appSettings";
+import { ObjectId } from 'mongodb'
 import {HttpStatusCode} from "../../../common/enums/HttpsStatusCodes";
+import {app} from "../../../../app/appSettings";
 import {RoutesList} from "../../../../app/enums";
-import {testBlogInput} from "../../mocks";
+import {testBlogInput} from "../../mocks/blogsMock";
 
 const supertest = require('supertest')
 
 const request = supertest(app)
+
 class BlogsTestManager {
     async createBlog(payload: {
         shouldExpect?: boolean
@@ -29,11 +31,12 @@ class BlogsTestManager {
             .expect(expectedStatusCode)
 
         if (shouldExpect && expectedStatusCode === HttpStatusCode.CREATED_201) {
-            const blogFromDb = await blogsCollection.findOne({ id: result.body.id })
+            const blogFromDb = await blogsCollection.findOne({ _id: new ObjectId(result.body.id) })
 
             expect(result.body.name).toBe(testBlogInput.name)
             expect(result.body.websiteUrl).toBe(testBlogInput.websiteUrl)
             expect(blogFromDb?.description).toStrictEqual(testBlogInput.description)
+            expect(blogFromDb?._id.toString()).toStrictEqual(expect.any(String))
         }
 
         if (shouldExpect && expectedStatusCode === HttpStatusCode.BAD_REQUEST_400 && checkedData?.field) {
@@ -49,4 +52,4 @@ class BlogsTestManager {
     }
 }
 
-export const blogTestManager = new BlogsTestManager()
+export const blogsTestManager = new BlogsTestManager()

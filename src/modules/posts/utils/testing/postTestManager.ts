@@ -1,9 +1,12 @@
-import {HttpStatusCode} from "../../../common/enums/HttpsStatusCodes";
+import { ObjectId } from 'mongodb'
 import {app} from "../../../../app/appSettings";
-import {blogTestManager} from "../../../blogs/utils/testing/blogTestManager";
+import {HttpStatusCode} from "../../../common/enums/HttpsStatusCodes";
 import {RoutesList} from "../../../../app/enums";
-import {testPostInput} from "../../mocks";
+import {testPostInput} from "../../mocks/postsMock";
 import {postsCollection} from "../../../../app/config/db";
+import {userInputMock} from "../../../users/mocks/usersMock";
+import {blogsTestManager} from "../../../blogs/utils/testing/blogsTestManager";
+import { usersTestManager } from '../../../users/utils/testing/usersTestManager';
 
 const supertest = require('supertest')
 
@@ -26,7 +29,7 @@ class PostsTestManager {
             checkedData,
         } = payload
 
-        const createdBlog = await blogTestManager.createBlog()
+        const createdBlog = await blogsTestManager.createBlog()
 
         const result = await request.post(RoutesList.POSTS)
             .auth(user, password)
@@ -36,11 +39,12 @@ class PostsTestManager {
             .expect(expectedStatusCode)
 
         if (shouldExpect && expectedStatusCode === HttpStatusCode.CREATED_201) {
-            const post = await postsCollection.findOne({ id: result.body.id })
+            const post = await postsCollection.findOne({ _id: new ObjectId(result.body.id) })
 
             expect(result.body.title).toBe(testPostInput.title)
             expect(result.body.blogId).toBe(createdBlog.body.id)
             expect(post?.shortDescription).toStrictEqual(testPostInput.shortDescription)
+            expect(post?._id.toString()).toStrictEqual(expect.any(String))
         }
 
         if (shouldExpect && expectedStatusCode === HttpStatusCode.BAD_REQUEST_400 && checkedData?.field) {
@@ -54,6 +58,23 @@ class PostsTestManager {
 
         return result
     }
+    async createComment() {
+        const createdPost = await this.createPost()
+        const createUser = await usersTestManager.createUser()
+        const resultLogin = await request.post(`${RoutesList.AUTH}/login`)
+            .send({
+                loginOrEmail: createUser.body.login,
+                password: userInputMock.password,
+            })
+            .expect(HttpStatusCode.OK_200)
+
+        const commentResult = await request.post(`${RoutesList.POSTS}/${createdPost.body.id}/comments`)
+            .auth(resultLogin.body.accessToken, { type: 'bearer' })
+            .send({ content: `This is my comment to ${createdPost.body.title} post <3`})
+            .expect(HttpStatusCode.CREATED_201)
+
+        return { postId: createdPost.body.id, comment: commentResult.body, accessToken: resultLogin.body.accessToken }
+    }
 }
 
-export const postTestManager = new PostsTestManager()
+export const postsTestManager = new PostsTestManager()

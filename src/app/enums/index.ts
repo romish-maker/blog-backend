@@ -5,4 +5,5 @@ export enum RoutesList {
     USERS = "/users",
     AUTH = "/auth",
     COMMENTS = "/comments",
+    TESTING = "/testing"
 }

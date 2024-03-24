@@ -12,13 +12,14 @@ export const usersRouter = Router()
 
 usersRouter.get('/', authMiddleware, async (req: RequestQuery<QueryUserInputModel>, res: Response) => {
     const sortData = {
-        sortBy: req.query.sortBy || "createdAt",
-        sortDirection: req.query.sortDirection || "desc",
-        pageNumber: Number(req.query.pageNumber) || 1,
-        pageSize: Number(req.query.pageSize) || 10,
+        pageNumber: isNaN(Number(req.query.pageNumber)) ? 1 : Number(req.query.pageNumber),
+        pageSize: isNaN(Number(req.query.pageSize)) ? 10 : Number(req.query.pageSize),
+        sortBy: req.query.sortBy ?? 'createdAt',
+        sortDirection: req.query.sortDirection === 'asc' ? 'asc' : 'desc',
+        searchEmailTerm: req.query.searchEmailTerm ?? null,
         searchLoginTerm: req.query.searchLoginTerm ?? null,
-        searchEmailTerm: req.query.searchEmailTerm ?? null
     }
+
 
     const users = await usersQueryRepository.getUsers(sortData)
 

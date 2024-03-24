@@ -19,3 +19,5 @@ export const testUpdateBlogInput: BlogInputModel = {
     description: 'Update blog description',
     websiteUrl: 'https://update-site-url.com/',
 }
+
+export const wrongBLogId = '123456789012345678901234'

@@ -10,11 +10,10 @@ export const usersQueryRepository = {
         let filter: any = { $or: [] }
 
         if (sortData.searchLoginTerm) {
-            filter.$or.push({ login: { $regex: sortData.searchLoginTerm, $options: 'i' }})
+            filter.$or.push({ 'userData.login': { $regex: sortData.searchLoginTerm, $options: 'i' }})
         }
-
         if (sortData.searchEmailTerm) {
-            filter.$or.push({ email: { $regex: sortData.searchEmailTerm, $options: 'i' }})
+            filter.$or.push({ 'userData.email': { $regex: sortData.searchEmailTerm, $options: 'i' }})
         }
         if (!filter.$or.length) {
             filter = {}
@@ -33,9 +32,9 @@ export const usersQueryRepository = {
 
         return {
             pagesCount,
+            totalCount,
             page: sortData.pageNumber,
             pageSize: sortData.pageSize,
-            totalCount,
             items: mappedUsers,
         }
     },
