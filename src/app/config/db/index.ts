@@ -7,6 +7,7 @@ import {PostDbType} from "../../../modules/posts/db/post-db";
 import {UserDbType} from "../../../modules/users/db/user-db";
 import {CommentDbType} from "../../../modules/comments/models/CommentDbType";
 import {UserDbModel} from "../../../modules/users/models/UserDbModel";
+import {SessionsDbModel} from "../../../modules/auth/models/SessionsDbModel";
 
 dotenv.config()
 
@@ -24,6 +25,7 @@ export const blogsCollection = database.collection<BlogDbType>(Collections.BLOGS
 export const postsCollection = database.collection<PostDbType>(Collections.POSTS)
 export const usersCollection = database.collection<UserDbModel>(Collections.USERS)
 export const commentsCollection = database.collection<CommentDbType>(Collections.COMMENTS)
+export const sessionsCollection = database.collection<SessionsDbModel>(Collections.SESSIONS)
 
 export const runDb= async () => {
     try {

@@ -13,13 +13,51 @@ import {ResultToRouterStatus} from "../../common/enums/ResultToRuterStatus";
 export const authRouter = Router()
 
 authRouter.post('/login', authPostValidation(), async (req: RequestBody<AuthInputModel>, res: Response) => {
-    const token = await authServices.checkUser(req.body.loginOrEmail, req.body.password)
+    const tokens = await authServices.createTokenPair(req.body.loginOrEmail, req.body.password)
 
-    if (!token) {
+    if (!tokens) {
         return res.sendStatus(HttpStatusCode.UNAUTHORIZED_401)
     }
 
-    return res.status(HttpStatusCode.OK_200).send({ accessToken: token })
+    res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true,secure: true })
+
+    return res.status(HttpStatusCode.OK_200).send({ accessToken: tokens.accessToken })
+})
+
+authRouter.post('/refresh-token', async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken
+    if (!refreshToken) {
+        res.sendStatus(HttpStatusCode.UNAUTHORIZED_401)
+        return
+    }
+
+    const updateTokensResult: any = await authServices.updateTokenPair(refreshToken)
+
+    if (updateTokensResult.status === ResultToRouterStatus.NOT_AUTHORIZED) {
+        res.sendStatus(HttpStatusCode.UNAUTHORIZED_401)
+        return
+    }
+
+    res.cookie('refreshToken', updateTokensResult.data?.refreshToken, { httpOnly: true,secure: true })
+    return res.status(HttpStatusCode.OK_200).send({ accessToken: updateTokensResult.data?.accessToken })
+})
+
+authRouter.post('/logout', async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken
+    if (!refreshToken) {
+        res.sendStatus(HttpStatusCode.UNAUTHORIZED_401)
+        return
+    }
+
+    const logoutResult = await authServices.logoutUser(refreshToken)
+
+    if (logoutResult.status === ResultToRouterStatus.NOT_AUTHORIZED) {
+        res.sendStatus(HttpStatusCode.UNAUTHORIZED_401)
+        return
+    }
+
+    res.clearCookie('refreshToken')
+    return res.sendStatus(HttpStatusCode.NO_CONTENT_204)
 })
 
 authRouter.get('/me', jwtAuthMiddleware , async (req: Request, res) => {

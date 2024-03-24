@@ -11,9 +11,10 @@ import {emailManager} from "../../common/managers/emailManager";
 import {authQueryRepository} from "../repository/authQueryRepository";
 import {ResultToRouter} from "../../common/types";
 import {ErrorMessageHandleResult, errorMessagesHandleService} from "../../common/services/errorMessagesHandleService";
+import {operationsResultService} from "../../common/services/operationsResultService";
 
 export const authServices = {
-    async checkUser(loginOrEmail: string, password: string) {
+    async createTokenPair(loginOrEmail: string, password: string) {
         const user = await authQueryRepository.getUserByLoginOrEmail(loginOrEmail)
         if (!user) {
             return false
@@ -25,7 +26,69 @@ export const authServices = {
             return false
         }
 
-        return await jwtService.createJWT(user)
+        const { accessToken, refreshToken } = await jwtService.createTokenPair(user)
+
+        if (!accessToken || !refreshToken) {
+            return false
+        }
+
+        return { accessToken, refreshToken }
+    },
+    async updateTokenPair(refreshToken: string) {
+        const userId = await jwtService.getUserIdByToken(refreshToken)
+        const user = userId && await authQueryRepository.getUserMeModelById(userId)
+
+        if (!userId || !user) {
+            return operationsResultService.generateResponse(ResultToRouterStatus.NOT_AUTHORIZED)
+        }
+
+        const isRefreshTokenValid = await authQueryRepository.getIsRefreshTokenValid(userId, refreshToken)
+        const userFromDb = await authQueryRepository.getUserByLoginOrEmail(user.email)
+
+        if (!isRefreshTokenValid || !userFromDb) {
+            return operationsResultService.generateResponse(ResultToRouterStatus.NOT_AUTHORIZED)
+        }
+
+
+        const { accessToken, refreshToken: updatedRefreshToken } = await jwtService.createTokenPair(userFromDb)
+
+        if (!accessToken || !updatedRefreshToken) {
+            return operationsResultService.generateResponse(ResultToRouterStatus.NOT_AUTHORIZED)
+        }
+
+        await authRepository.addRefreshTokenToBlackList(userId, refreshToken)
+
+        return operationsResultService.generateResponse(
+            ResultToRouterStatus.SUCCESS,
+            { accessToken, refreshToken: updatedRefreshToken },
+        )
+    },
+    async logoutUser(refreshToken: string) {
+        const userId = await jwtService.getUserIdByToken(refreshToken)
+        const user = userId && await authQueryRepository.getUserMeModelById(userId)
+
+        if (!userId || !user) {
+            return {
+                status: ResultToRouterStatus.NOT_AUTHORIZED,
+                data: null,
+            }
+        }
+
+        const isRefreshTokenValid = await authQueryRepository.getIsRefreshTokenValid(userId, refreshToken)
+
+        if (!isRefreshTokenValid) {
+            return {
+                status: ResultToRouterStatus.NOT_AUTHORIZED,
+                data: null,
+            }
+        }
+
+        await authRepository.addRefreshTokenToBlackList(userId, refreshToken)
+
+        return {
+            status: ResultToRouterStatus.SUCCESS,
+            data: null,
+        }
     },
     async registerUser(payload: UserInputModel) {
         const { login, email, password } = payload

@@ -1,5 +1,5 @@
 import {ObjectId} from 'mongodb'
-import {usersCollection} from "../../../app/config/db";
+import {sessionsCollection, usersCollection} from "../../../app/config/db";
 import {authMappers} from "../mapper/auth-mapper";
 
 export const authQueryRepository = {
@@ -25,4 +25,13 @@ export const authQueryRepository = {
 
         return users[0]
     },
+    async getIsRefreshTokenValid(userId: string, refreshToken: string) {
+        const userSession = await sessionsCollection.findOne({ userId })
+
+        if (!userSession) {
+            return false
+        }
+
+        return !userSession.refreshTokensBlackList.includes(refreshToken)
+    }
 }

@@ -9,8 +9,10 @@ import {commentsRouter} from "../modules/comments/router/commentsRouter";
 
 export const AppSettings = {
     PORT: 5000,
-    JWT_SECRET: process.env.JWT_SECRET,
-    JWT_EXPIRES: "1h",
+    ACCESS_JWT_SECRET: process.env.ACCESS_JWT_SECRET,
+    ACCESS_JWT_EXPIRES: '10s',
+    REFRESH_JWT_SECRET: process.env.REFRESH_JWT_SECRET,
+    REFRESH_JWT_EXPIRES: '20s',
     SEND_MAIL_SERVICE_EMAIL: process.env.SEND_MAIL_SERVICE_EMAIL,
     SEND_MAIL_SERVICE_PASSWORD: process.env.SEND_MAIL_SERVICE_PASSWORD,
 }
