@@ -1,5 +1,5 @@
 
-import jwt from 'jsonwebtoken'
+import jwt, {JwtPayload} from 'jsonwebtoken'
 import { WithId } from 'mongodb'
 import { AppSettings } from '../../../app/appSettings'
 import {UserDbModel} from "../../users/models/UserDbModel";
@@ -37,5 +37,33 @@ export const jwtService = {
         } catch (err) {
             return null
         }
+    },
+    async getDataByTokenAndVerify(token: string, secretType: 'access' | 'refresh' = 'access'): Promise<JwtPayload | null> {
+        const secret = secretType === 'access' ? AppSettings.ACCESS_JWT_SECRET : AppSettings.REFRESH_JWT_SECRET
+
+        if (!secret) {
+            return null
+        }
+
+        try {
+            const res = jwt.verify(token, secret)
+
+            if (typeof res === 'string') {
+                return null
+            }
+
+            return res
+        } catch (err) {
+            return null
+        }
+    },
+    async decodeToken(token: string) {
+        const tokenData = jwt.decode(token)
+
+        if (!tokenData || typeof tokenData === 'string') {
+            return null
+        }
+
+        return tokenData
     }
 }

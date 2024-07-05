@@ -1,4 +1,4 @@
-export type SessionsDbModel = {
+export type AuthSessionsDbModel = {
     userId: string
     deviceId: string
     deviceName: string

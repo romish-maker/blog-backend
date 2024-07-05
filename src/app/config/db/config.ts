@@ -3,5 +3,6 @@ export enum Collections {
     POSTS = "posts",
     USERS = "users",
     COMMENTS = "comments",
-    SESSIONS = "sessions"
+    SESSIONS = "sessions",
+    RATE_LIMIT = "rate-limit"
 }

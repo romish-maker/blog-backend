@@ -7,6 +7,7 @@ import {SessionsDbModel} from "../../../modules/auth/models/SessionsDbModel";
 import {BlogDbType} from "../../../modules/blogs/db/blog-db";
 import {PostDbType} from "../../../modules/posts/db/post-db";
 import {CommentDbType} from "../../../modules/comments/models/CommentDbType";
+import {RateLimitModel} from "../../../modules/auth/models/RateLimitModel";
 
 export let client: MongoClient
 let blogsCollection: Collection<BlogDbType>
@@ -14,6 +15,7 @@ let postsCollection: Collection<PostDbType>
 let usersCollection: Collection<UserDbModel>
 let commentsCollection: Collection<CommentDbType>
 let sessionsCollection: Collection<SessionsDbModel>
+let rateLimitCollection: Collection<RateLimitModel>
 
 async function runDb() {
     const uri = AppSettings.MONGO_URI
@@ -29,6 +31,7 @@ async function runDb() {
     usersCollection = db.collection<UserDbModel>(Collections.USERS)
     commentsCollection = db.collection<CommentDbType>(Collections.COMMENTS)
     sessionsCollection = db.collection<SessionsDbModel>(Collections.SESSIONS)
+    rateLimitCollection = db.collection<RateLimitModel>(Collections.RATE_LIMIT)
 
     try {
         await client.connect()
@@ -55,4 +58,5 @@ export {
     usersCollection,
     commentsCollection,
     sessionsCollection,
+    rateLimitCollection
 }

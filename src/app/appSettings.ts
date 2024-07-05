@@ -7,6 +7,7 @@ import {usersRouter} from "../modules/users/router/usersRouter";
 import {authRouter} from "../modules/auth/router/authRouter";
 import {commentsRouter} from "../modules/comments/router/commentsRouter";
 import cookieParser from "cookie-parser";
+import {devicesRouter} from "../modules/devices/router/devicesRouter";
 
 export const AppSettings = {
     PORT: 5000,
@@ -20,6 +21,7 @@ export const AppSettings = {
 }
 
 export const app = express()
+app.set('trust proxy', true)
 const jsonParseMiddleware = express.json()
 const cookieParserMiddleware = cookieParser()
 
@@ -30,6 +32,7 @@ app.use(RoutesList.POSTS, postsRouter)
 app.use(RoutesList.USERS, usersRouter)
 app.use(RoutesList.AUTH, authRouter)
 app.use(RoutesList.COMMENTS, commentsRouter)
+app.use(RoutesList.DEVICES, devicesRouter)
 app.use(RoutesList.TESTING, testingRouter)
 
 app.use(RoutesList.BASE, (req: Request, res: Response) => {
