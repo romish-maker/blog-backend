@@ -152,7 +152,7 @@ describe('/posts route POST tests: ', () => {
         })
     })
 
-    it('POST /posts failed::blogId', async () => {
+    it('POST /posts  failed::blogId', async () => {
         await postsTestManager.createPost({
             shouldExpect: true,
             expectedStatusCode: HttpStatusCode.BAD_REQUEST_400,
